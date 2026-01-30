@@ -77,7 +77,7 @@ Each language section includes common vulnerabilities, unsafe/safe code patterns
 
 ### Clone Full Repository
 ```bash
-git clone https://github.com/agam/claude-code-owasp.git
+git clone https://github.com/agamm/claude-code-owasp.git
 cp -r claude-code-owasp/.claude/skills/owasp-security YOUR_PROJECT/.claude/skills/
 ```
 
