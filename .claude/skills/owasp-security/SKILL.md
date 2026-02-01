@@ -305,7 +305,7 @@ YAML.load(user_input)
 # SAFE: Use safe_load
 YAML.safe_load(user_input)
 ```
-**Watch for:** `YAML.load`, `Marshal.load`, `eval`, `send` with user input, `.permit!`
+**Watch for:** YAML.load, Marshal.load, eval, send with user input, .permit!
 
 ---
 
@@ -337,7 +337,7 @@ guard let value = jsonDict["key"] else { return }
 String(format: userInput, args)
 // SAFE: Don't use user input as format
 ```
-**Watch for:** `!` force unwrap, `try!`, ObjC bridging, `NSSecureCoding` misuse
+**Watch for:** force unwrap (!), try!, ObjC bridging, NSSecureCoding misuse
 
 ---
 
