@@ -179,19 +179,6 @@ When building or reviewing AI agent systems, check for:
 | ASI09: Human-Agent Trust Exploitation | Over-trust in agents leveraged to manipulate users | Label AI content, user education, verification steps |
 | ASI10: Rogue Agents | Compromised agents acting maliciously | Behavior monitoring, kill switches, anomaly detection |
 
-### Agent Security Checklist
-
-- [ ] All agent inputs sanitized and validated
-- [ ] Tools operate with minimum required permissions
-- [ ] Credentials are short-lived and scoped
-- [ ] Third-party plugins verified and sandboxed
-- [ ] Code execution happens in isolated environments
-- [ ] Agent communications authenticated and encrypted
-- [ ] Circuit breakers between agent components
-- [ ] Human approval for sensitive operations
-- [ ] Behavior monitoring for anomaly detection
-- [ ] Kill switch available for agent systems
-
 ## OWASP Top 10 for LLM Applications (2025)
 
 When building or reviewing applications that call LLMs (chatbots, RAG, copilots, agents), check for:
@@ -208,19 +195,6 @@ When building or reviewing applications that call LLMs (chatbots, RAG, copilots,
 | LLM08 | Vector and Embedding Weaknesses | Tenant-isolate vector stores, access-control on retrieval, sign or hash chunks against indirect prompt injection |
 | LLM09 | Misinformation | Cite sources, surface confidence, require grounding for high-stakes answers, disclose AI provenance |
 | LLM10 | Unbounded Consumption | Rate-limit per user/key, cap tokens and tool calls per request, monitor cost, set hard timeouts |
-
-### LLM Application Security Checklist
-
-- [ ] User input never blindly concatenated into a system prompt — use clear delimiters or structured roles
-- [ ] LLM output treated as untrusted before reaching a tool, DOM, shell, SQL, or `eval`
-- [ ] Tool/function-calling surface is minimal and least-privilege
-- [ ] Destructive or external-effect tools require explicit human approval
-- [ ] System prompt contains no secrets, keys, or authorization rules
-- [ ] RAG sources are trusted, signed, or quarantined by trust level (defends against indirect prompt injection)
-- [ ] Per-user token / request / cost budgets enforced
-- [ ] Hard timeouts on completions and tool calls
-- [ ] PII and customer data redacted before being sent to the model or logged
-- [ ] Model, embedding model, and adapter versions pinned and verifiable
 
 ### Prompt Injection Prevention (LLM01)
 ```python
@@ -248,34 +222,8 @@ query, params = build_query(spec)                          # allow-listed column
 db.execute(query, params)
 ```
 
-### Excessive Agency (LLM06)
-```python
-# UNSAFE - broad tool surface, admin creds, no approval gate
-agent = Agent(tools=ALL_TOOLS, credentials=admin_token)
-
-# SAFE - minimum tools, scoped short-lived token, approval for side effects
-agent = Agent(
-    tools=[search_docs, read_ticket],
-    credentials=mint_scoped_token(user, ttl_minutes=10, scopes=["read"]),
-    require_approval=["send_email", "delete_*", "execute_code"],
-)
-```
-
-### Unbounded Consumption (LLM10)
-```python
-# UNSAFE - no limits; one user can exhaust quota or wallet
-@app.post("/chat")
-def chat(msg: str):
-    return llm.complete(msg)
-
-# SAFE - per-user rate limit, token cap, timeout, budget check
-@app.post("/chat")
-@rate_limit("20/min", key="user_id")
-def chat(msg: str, user: User):
-    if user.tokens_used_today >= user.daily_token_budget:
-        abort(429, "Daily budget exceeded")
-    return llm.complete(msg, max_tokens=512, timeout=15)
-```
+Worked examples for Excessive Agency (LLM06) and Unbounded Consumption (LLM10), plus attack
+vectors for all ten risks, are in [`reference/owasp-report.md`](reference/owasp-report.md).
 
 ## ASVS 5.0 Key Requirements
 
@@ -320,17 +268,21 @@ map to 5.0** — `V2.1.1` meant "password length" in 4.0 and means something els
 - Generic error message to the user; detail stays in the log (16.5.1)
 
 ### Level 3 — highest assurance
+
+ASVS 5.0 has **92 L3 requirements**; they are not enumerated here. Two worth knowing because
+they tighten an L2 requirement rather than adding a new one:
+
 - One factor must be hardware-based and phishing-resistant, e.g. a FIDO key (6.3.3, L3 clause)
 - Log **all** authorization decisions, not only failures (16.3.2, L3 clause)
 
+For an actual L3 assessment, work from the standard itself — see
+[`reference/owasp-report.md`](reference/owasp-report.md) for the chapter map.
+
 ## Language-Specific Security Quirks
 
-Every language has unique security pitfalls. For per-language unsafe/safe examples and
-the key functions to watch for across 20+ languages (JavaScript/TypeScript, Python, Java,
-C#, PHP, Go, Ruby, Rust, Swift, Kotlin, C/C++, Scala, R, Perl, Shell, Lua, Elixir,
-Dart/Flutter, PowerShell, SQL), see [`reference/languages.md`](reference/languages.md).
-
-For any language **not** listed there, apply the analysis mindset below.
+For per-language unsafe/safe examples and the functions to watch for across 20+ languages, see
+[`reference/languages.md`](reference/languages.md). For anything not covered there, apply the
+mindset below.
 
 ## Deep Security Analysis Mindset
 
@@ -347,19 +299,5 @@ When reviewing any language, think like a senior security researcher:
 9. **Runtime Behavior:** Debug vs release differences (Rust overflow, C++ assertions).
 10. **Error Handling:** How does the language fail? Silently? With stack traces? Fail-open?
 
-**For any language not listed:** Research its specific CWE patterns, CVE history, and known footguns. The examples above are entry points, not complete coverage.
-
-## When to Apply This Skill
-
-Use this skill when:
-- Writing authentication or authorization code
-- Handling user input or external data
-- Implementing cryptography or password storage
-- Reviewing code for security vulnerabilities
-- Designing API endpoints
-- Building AI agent systems
-- Integrating LLMs, RAG pipelines, or function-calling tools
-- Configuring application security settings
-- Handling errors and exceptions
-- Working with third-party dependencies
-- **Working in any language** - apply the deep analysis mindset above
+These are entry points, not complete coverage — research the language's own CWE patterns, CVE
+history, and known footguns.

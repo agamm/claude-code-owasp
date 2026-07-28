@@ -106,10 +106,10 @@ Contributions welcome! Please:
 
 ## Sources
 
-- [OWASP Top 10:2025](https://owasp.org/Top10/)
-- [OWASP ASVS 5.0](https://owasp.org/www-project-application-security-verification-standard/)
+- [OWASP Top 10:2025](https://owasp.org/Top10/2025/)
+- [OWASP ASVS 5.0](https://github.com/OWASP/ASVS/tree/master/5.0/en) — chapter files, one per V-number
 - [OWASP Top 10 for LLM Applications 2025](https://genai.owasp.org/llm-top-10/)
-- [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/)
+- [OWASP GenAI Security Project](https://genai.owasp.org/) — home of the LLM and Agentic lists
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)
 
 ## License

@@ -10,8 +10,7 @@ A comprehensive guide to the latest OWASP security standards for developers buil
 2. [OWASP ASVS 5.0.0](#owasp-asvs-500)
 3. [OWASP Top 10 for LLM Applications 2025](#owasp-top-10-for-llm-applications-2025)
 4. [OWASP Top 10 for Agentic Applications 2026](#owasp-top-10-for-agentic-applications-2026)
-5. [Key Security Principles](#key-security-principles)
-6. [Sources and References](#sources-and-references)
+5. [Sources and References](#sources-and-references)
 
 ---
 
@@ -1077,34 +1076,6 @@ state rather than just generating text. It extends the LLM Top 10 above rather t
 - Regular security audits of agent systems
 - Kill switches for agent operations
 - Behavioral baselines and deviation detection
-
----
-
-## Key Security Principles
-
-### Defense in Depth
-Layer multiple security controls so that if one fails, others provide protection.
-
-### Least Privilege
-Grant minimum permissions necessary for functionality. Regularly review and revoke unnecessary access.
-
-### Fail Secure
-When errors occur, default to a secure state. Deny access rather than allow it when uncertain.
-
-### Zero Trust
-Never trust, always verify. Authenticate and authorize every request regardless of source.
-
-### Secure by Default
-Ship products with secure defaults. Require explicit action to reduce security.
-
-### Input Validation
-Validate all input on the server side. Use allowlists over denylists.
-
-### Output Encoding
-Encode output based on context (HTML, JavaScript, SQL, etc.) to prevent injection.
-
-### Keep Security Simple
-Complex security is often bypassed. Prefer simple, understandable controls.
 
 ---
 
