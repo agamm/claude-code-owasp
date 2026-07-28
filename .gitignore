@@ -1,0 +1,14 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Local machine-specific working files
+.local/
+
+# Claude Code local settings (per-machine, not part of the skill)
+.claude/settings.local.json
+
+# Agent tooling logs
+.a5c/

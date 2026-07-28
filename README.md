@@ -25,16 +25,28 @@ Location: `.claude/skills/owasp-security/`
 
 `SKILL.md` (the always-loaded core):
 - **OWASP Top 10:2025** quick reference table
+- **Finding-triage rubric** - confirm attacker-controlled input, sink reachability, and blast radius before reporting, to cut false positives
 - **Security code review checklists** for input handling, auth, access control, data protection, and error handling
 - **Secure code patterns** with unsafe/safe examples
 - **OWASP Top 10 for LLM Applications (2025)** - LLM01-LLM10 risks for chatbots, RAG, and tool-calling apps
 - **OWASP Agentic AI Security (2026)** - ASI01-ASI10 risks for AI agent systems
-- **ASVS 5.0** key requirements by verification level
+- **ASVS 5.0** key requirements with real 5.0 requirement IDs and levels
 - **Deep security analysis mindset** for any language
 
 `reference/` (loaded on demand, following Claude Code progressive-disclosure best practices):
 - **`languages.md`** - language-specific security quirks for 20+ languages with unsafe/safe examples
-- **`owasp-report.md`** - comprehensive deep-dive on every OWASP 2025-2026 standard
+- **`owasp-report.md`** - deep-dive on the Top 10:2025, ASVS 5.0, the LLM Top 10 (2025), and the Agentic list (2026), with per-item attack vectors and mitigations
+
+### Accuracy
+
+Category names, ASVS chapter structure, and ASVS requirement IDs and levels are verified
+directly against [owasp.org/Top10/2025](https://owasp.org/Top10/2025/),
+[github.com/OWASP/ASVS](https://github.com/OWASP/ASVS/tree/master/5.0/en), and
+[genai.owasp.org](https://genai.owasp.org/llm-top-10/) rather than paraphrased.
+
+This matters more than it sounds: ASVS 5.0 renumbered every chapter, so 4.0 requirement IDs
+do not carry over, and three Top 10 categories were renamed in 2025. Much of the OWASP
+material circulating online still cites the old IDs and names.
 
 ## Usage
 
@@ -94,10 +106,10 @@ Contributions welcome! Please:
 
 ## Sources
 
-- [OWASP Top 10:2025](https://owasp.org/Top10/)
-- [OWASP ASVS 5.0](https://owasp.org/www-project-application-security-verification-standard/)
+- [OWASP Top 10:2025](https://owasp.org/Top10/2025/)
+- [OWASP ASVS 5.0](https://github.com/OWASP/ASVS/tree/master/5.0/en) — chapter files, one per V-number
 - [OWASP Top 10 for LLM Applications 2025](https://genai.owasp.org/llm-top-10/)
-- [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/)
+- [OWASP GenAI Security Project](https://genai.owasp.org/) — home of the LLM and Agentic lists
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)
 
 ## License

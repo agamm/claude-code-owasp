@@ -1,7 +1,6 @@
 ---
 name: owasp-security
 description: Use when reviewing code for security vulnerabilities, implementing authentication/authorization, handling user input, or discussing web application security. Covers OWASP Top 10:2025, ASVS 5.0, LLM Top 10 (2025), and Agentic AI security (2026).
-allowed-tools: Read Grep Glob
 ---
 
 # OWASP Security Best Practices Skill
@@ -27,6 +26,29 @@ Apply these security standards when writing or reviewing code.
 | A09 | Security Logging and Alerting Failures | Log security events, structured format, alerting |
 | A10 | Mishandling of Exceptional Conditions | Fail-closed, hide internals, log with context |
 
+## Before Reporting a Finding
+
+A pattern match is not a vulnerability. The most common failure mode in automated security
+review is reporting unreachable or already-mitigated code, which buries the real findings.
+Confirm all three before reporting:
+
+1. **Is the input actually attacker-controlled?** Trace it back to a real entry point — a
+   request parameter, header, cookie, uploaded file, webhook, queue message, or third-party
+   API response. A value that only ever comes from a constant, an enum, or trusted internal
+   config is not an injection source.
+2. **Is the sink reachable with that input?** Check whether validation, an allowlist, an ORM,
+   or a framework-level control already sits between them. Look for auth middleware
+   (`middleware.ts`, `proxy.ts`, Express/Django/Rails middleware, a base controller,
+   decorators) before flagging a route as missing authorization — enforcement is often
+   centralized rather than per-route.
+3. **What is the blast radius?** Who can trigger it, what do they get, and does it cross a
+   trust boundary? An SSRF reaching cloud metadata differs from one reaching localhost only.
+
+Report severity by exploitability, not by pattern. State the concrete path — *this input
+reaches this sink* — and say so explicitly when a finding is theoretical or defense-in-depth
+rather than directly exploitable. If reachability can't be determined from the code available,
+say that instead of asserting either way.
+
 ## Security Code Review Checklist
 
 When reviewing code, check for these issues:
@@ -44,7 +66,6 @@ When reviewing code, check for these issues:
 - [ ] MFA available for sensitive operations
 
 ### Access Control
-- [ ] Check for framework-level auth middleware (e.g., Next.js middleware.ts, proxy.ts, Express middleware) before flagging missing per-route auth
 - [ ] Authorization checked on every request
 - [ ] Using object references user cannot manipulate
 - [ ] Deny by default policy
@@ -158,19 +179,6 @@ When building or reviewing AI agent systems, check for:
 | ASI09: Human-Agent Trust Exploitation | Over-trust in agents leveraged to manipulate users | Label AI content, user education, verification steps |
 | ASI10: Rogue Agents | Compromised agents acting maliciously | Behavior monitoring, kill switches, anomaly detection |
 
-### Agent Security Checklist
-
-- [ ] All agent inputs sanitized and validated
-- [ ] Tools operate with minimum required permissions
-- [ ] Credentials are short-lived and scoped
-- [ ] Third-party plugins verified and sandboxed
-- [ ] Code execution happens in isolated environments
-- [ ] Agent communications authenticated and encrypted
-- [ ] Circuit breakers between agent components
-- [ ] Human approval for sensitive operations
-- [ ] Behavior monitoring for anomaly detection
-- [ ] Kill switch available for agent systems
-
 ## OWASP Top 10 for LLM Applications (2025)
 
 When building or reviewing applications that call LLMs (chatbots, RAG, copilots, agents), check for:
@@ -187,19 +195,6 @@ When building or reviewing applications that call LLMs (chatbots, RAG, copilots,
 | LLM08 | Vector and Embedding Weaknesses | Tenant-isolate vector stores, access-control on retrieval, sign or hash chunks against indirect prompt injection |
 | LLM09 | Misinformation | Cite sources, surface confidence, require grounding for high-stakes answers, disclose AI provenance |
 | LLM10 | Unbounded Consumption | Rate-limit per user/key, cap tokens and tool calls per request, monitor cost, set hard timeouts |
-
-### LLM Application Security Checklist
-
-- [ ] User input never blindly concatenated into a system prompt — use clear delimiters or structured roles
-- [ ] LLM output treated as untrusted before reaching a tool, DOM, shell, SQL, or `eval`
-- [ ] Tool/function-calling surface is minimal and least-privilege
-- [ ] Destructive or external-effect tools require explicit human approval
-- [ ] System prompt contains no secrets, keys, or authorization rules
-- [ ] RAG sources are trusted, signed, or quarantined by trust level (defends against indirect prompt injection)
-- [ ] Per-user token / request / cost budgets enforced
-- [ ] Hard timeouts on completions and tool calls
-- [ ] PII and customer data redacted before being sent to the model or logged
-- [ ] Model, embedding model, and adapter versions pinned and verifiable
 
 ### Prompt Injection Prevention (LLM01)
 ```python
@@ -227,66 +222,67 @@ query, params = build_query(spec)                          # allow-listed column
 db.execute(query, params)
 ```
 
-### Excessive Agency (LLM06)
-```python
-# UNSAFE - broad tool surface, admin creds, no approval gate
-agent = Agent(tools=ALL_TOOLS, credentials=admin_token)
-
-# SAFE - minimum tools, scoped short-lived token, approval for side effects
-agent = Agent(
-    tools=[search_docs, read_ticket],
-    credentials=mint_scoped_token(user, ttl_minutes=10, scopes=["read"]),
-    require_approval=["send_email", "delete_*", "execute_code"],
-)
-```
-
-### Unbounded Consumption (LLM10)
-```python
-# UNSAFE - no limits; one user can exhaust quota or wallet
-@app.post("/chat")
-def chat(msg: str):
-    return llm.complete(msg)
-
-# SAFE - per-user rate limit, token cap, timeout, budget check
-@app.post("/chat")
-@rate_limit("20/min", key="user_id")
-def chat(msg: str, user: User):
-    if user.tokens_used_today >= user.daily_token_budget:
-        abort(429, "Daily budget exceeded")
-    return llm.complete(msg, max_tokens=512, timeout=15)
-```
+Worked examples for Excessive Agency (LLM06) and Unbounded Consumption (LLM10), plus attack
+vectors for all ten risks, are in [`reference/owasp-report.md`](reference/owasp-report.md).
 
 ## ASVS 5.0 Key Requirements
 
-### Level 1 (All Applications)
-- Passwords minimum 12 characters
-- Check against breached password lists
-- Rate limiting on authentication
-- Session tokens 128+ bits entropy
-- HTTPS everywhere
+ASVS 5.0 (May 2025) renumbered and reorganized every chapter. **4.0 requirement IDs do not
+map to 5.0** — `V2.1.1` meant "password length" in 4.0 and means something else now. Cite
+5.0 IDs only. Levels are defined by share of requirements, not by application category:
 
-### Level 2 (Sensitive Data)
-- All L1 requirements plus:
-- MFA for sensitive operations
-- Cryptographic key management
-- Comprehensive security logging
-- Input validation on all parameters
+| Level | Share | Intent |
+|---|---|---|
+| L1 | ~20% | Minimum bar; deliberately small to lower the barrier to entry |
+| L2 | ~50% (≈70% cumulative) | What most applications should target |
+| L3 | remaining ~30% | Highest assurance |
 
-### Level 3 (Critical Systems)
-- All L1/L2 requirements plus:
-- Hardware security modules for keys
-- Threat modeling documentation
-- Advanced monitoring and alerting
-- Penetration testing validation
+### Level 1 — the minimum bar
+- Passwords **at least 8 characters**; 15+ strongly recommended (6.2.1)
+- No composition rules — permit any characters, paste, and password managers (6.2.5, 6.2.7)
+- Block at least the top 3000 common passwords (6.2.4)
+- Anti-automation against credential stuffing and brute force (6.3.1)
+- No default accounts like `root`/`admin`/`sa` (6.3.2)
+- Reference session tokens from a CSPRNG with 128+ bits entropy (7.2.3)
+- New session token issued on authentication and re-authentication (7.2.4)
+- Session fully unusable after logout or expiry (7.4.1)
+- Function-level and data-level access restricted to explicit permissions (8.2.1, 8.2.2)
+- Authorization enforced at a trusted service layer the client cannot manipulate (8.3.1)
+- Parameterized queries / ORM for all data access (1.2.4); parameterized OS calls (1.2.5)
+- Context-appropriate output encoding for HTML, URLs, and JavaScript/JSON (1.2.1–1.2.3)
+- Avoid `eval()` and dynamic code execution (1.3.2)
+- Input validated at a trusted service layer, positive/allowlist where possible (2.2.1, 2.2.2)
+- TLS 1.2+ on all external traffic, publicly trusted certificates (12.1.1, 12.2.1, 12.2.2)
+- Approved ciphers and modes only — no ECB, no PKCS#1 v1.5 padding (11.3.1, 11.3.2)
+- No sensitive data in URLs or query strings (14.2.1)
+
+### Level 2 — what most applications should target
+- MFA, or a documented combination of single factors (6.3.3)
+- Passwords checked against a breached-password set (6.2.12)
+- No forced periodic password rotation — rotate only on compromise (6.2.10)
+- **All security logging starts here.** ASVS 5.0 has *no* L1 logging requirements; the whole
+  of V16 is L2+. Log authentication attempts, failed authorization, security events, and
+  unexpected errors (16.3.1–16.3.4)
+- Log entries carry when/where/who/what metadata on a synchronized clock (16.2.1, 16.2.2)
+- Logs encoded against log injection, protected from modification, shipped off-box (16.4.1–16.4.3)
+- Generic error message to the user; detail stays in the log (16.5.1)
+
+### Level 3 — highest assurance
+
+ASVS 5.0 has **92 L3 requirements**; they are not enumerated here. Two worth knowing because
+they tighten an L2 requirement rather than adding a new one:
+
+- One factor must be hardware-based and phishing-resistant, e.g. a FIDO key (6.3.3, L3 clause)
+- Log **all** authorization decisions, not only failures (16.3.2, L3 clause)
+
+For an actual L3 assessment, work from the standard itself — see
+[`reference/owasp-report.md`](reference/owasp-report.md) for the chapter map.
 
 ## Language-Specific Security Quirks
 
-Every language has unique security pitfalls. For per-language unsafe/safe examples and
-the key functions to watch for across 20+ languages (JavaScript/TypeScript, Python, Java,
-C#, PHP, Go, Ruby, Rust, Swift, Kotlin, C/C++, Scala, R, Perl, Shell, Lua, Elixir,
-Dart/Flutter, PowerShell, SQL), see [`reference/languages.md`](reference/languages.md).
-
-For any language **not** listed there, apply the analysis mindset below.
+For per-language unsafe/safe examples and the functions to watch for across 20+ languages, see
+[`reference/languages.md`](reference/languages.md). For anything not covered there, apply the
+mindset below.
 
 ## Deep Security Analysis Mindset
 
@@ -303,19 +299,5 @@ When reviewing any language, think like a senior security researcher:
 9. **Runtime Behavior:** Debug vs release differences (Rust overflow, C++ assertions).
 10. **Error Handling:** How does the language fail? Silently? With stack traces? Fail-open?
 
-**For any language not listed:** Research its specific CWE patterns, CVE history, and known footguns. The examples above are entry points, not complete coverage.
-
-## When to Apply This Skill
-
-Use this skill when:
-- Writing authentication or authorization code
-- Handling user input or external data
-- Implementing cryptography or password storage
-- Reviewing code for security vulnerabilities
-- Designing API endpoints
-- Building AI agent systems
-- Integrating LLMs, RAG pipelines, or function-calling tools
-- Configuring application security settings
-- Handling errors and exceptions
-- Working with third-party dependencies
-- **Working in any language** - apply the deep analysis mindset above
+These are entry points, not complete coverage — research the language's own CWE patterns, CVE
+history, and known footguns.
