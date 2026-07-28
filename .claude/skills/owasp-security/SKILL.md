@@ -1,7 +1,6 @@
 ---
 name: owasp-security
 description: Use when reviewing code for security vulnerabilities, implementing authentication/authorization, handling user input, or discussing web application security. Covers OWASP Top 10:2025, ASVS 5.0, LLM Top 10 (2025), and Agentic AI security (2026).
-allowed-tools: Read Grep Glob
 ---
 
 # OWASP Security Best Practices Skill
@@ -27,6 +26,29 @@ Apply these security standards when writing or reviewing code.
 | A09 | Security Logging and Alerting Failures | Log security events, structured format, alerting |
 | A10 | Mishandling of Exceptional Conditions | Fail-closed, hide internals, log with context |
 
+## Before Reporting a Finding
+
+A pattern match is not a vulnerability. The most common failure mode in automated security
+review is reporting unreachable or already-mitigated code, which buries the real findings.
+Confirm all three before reporting:
+
+1. **Is the input actually attacker-controlled?** Trace it back to a real entry point — a
+   request parameter, header, cookie, uploaded file, webhook, queue message, or third-party
+   API response. A value that only ever comes from a constant, an enum, or trusted internal
+   config is not an injection source.
+2. **Is the sink reachable with that input?** Check whether validation, an allowlist, an ORM,
+   or a framework-level control already sits between them. Look for auth middleware
+   (`middleware.ts`, `proxy.ts`, Express/Django/Rails middleware, a base controller,
+   decorators) before flagging a route as missing authorization — enforcement is often
+   centralized rather than per-route.
+3. **What is the blast radius?** Who can trigger it, what do they get, and does it cross a
+   trust boundary? An SSRF reaching cloud metadata differs from one reaching localhost only.
+
+Report severity by exploitability, not by pattern. State the concrete path — *this input
+reaches this sink* — and say so explicitly when a finding is theoretical or defense-in-depth
+rather than directly exploitable. If reachability can't be determined from the code available,
+say that instead of asserting either way.
+
 ## Security Code Review Checklist
 
 When reviewing code, check for these issues:
@@ -44,7 +66,6 @@ When reviewing code, check for these issues:
 - [ ] MFA available for sensitive operations
 
 ### Access Control
-- [ ] Check for framework-level auth middleware (e.g., Next.js middleware.ts, proxy.ts, Express middleware) before flagging missing per-route auth
 - [ ] Authorization checked on every request
 - [ ] Using object references user cannot manipulate
 - [ ] Deny by default policy
@@ -258,26 +279,49 @@ def chat(msg: str, user: User):
 
 ## ASVS 5.0 Key Requirements
 
-### Level 1 (All Applications)
-- Passwords minimum 12 characters
-- Check against breached password lists
-- Rate limiting on authentication
-- Session tokens 128+ bits entropy
-- HTTPS everywhere
+ASVS 5.0 (May 2025) renumbered and reorganized every chapter. **4.0 requirement IDs do not
+map to 5.0** — `V2.1.1` meant "password length" in 4.0 and means something else now. Cite
+5.0 IDs only. Levels are defined by share of requirements, not by application category:
 
-### Level 2 (Sensitive Data)
-- All L1 requirements plus:
-- MFA for sensitive operations
-- Cryptographic key management
-- Comprehensive security logging
-- Input validation on all parameters
+| Level | Share | Intent |
+|---|---|---|
+| L1 | ~20% | Minimum bar; deliberately small to lower the barrier to entry |
+| L2 | ~50% (≈70% cumulative) | What most applications should target |
+| L3 | remaining ~30% | Highest assurance |
 
-### Level 3 (Critical Systems)
-- All L1/L2 requirements plus:
-- Hardware security modules for keys
-- Threat modeling documentation
-- Advanced monitoring and alerting
-- Penetration testing validation
+### Level 1 — the minimum bar
+- Passwords **at least 8 characters**; 15+ strongly recommended (6.2.1)
+- No composition rules — permit any characters, paste, and password managers (6.2.5, 6.2.7)
+- Block at least the top 3000 common passwords (6.2.4)
+- Anti-automation against credential stuffing and brute force (6.3.1)
+- No default accounts like `root`/`admin`/`sa` (6.3.2)
+- Reference session tokens from a CSPRNG with 128+ bits entropy (7.2.3)
+- New session token issued on authentication and re-authentication (7.2.4)
+- Session fully unusable after logout or expiry (7.4.1)
+- Function-level and data-level access restricted to explicit permissions (8.2.1, 8.2.2)
+- Authorization enforced at a trusted service layer the client cannot manipulate (8.3.1)
+- Parameterized queries / ORM for all data access (1.2.4); parameterized OS calls (1.2.5)
+- Context-appropriate output encoding for HTML, URLs, and JavaScript/JSON (1.2.1–1.2.3)
+- Avoid `eval()` and dynamic code execution (1.3.2)
+- Input validated at a trusted service layer, positive/allowlist where possible (2.2.1, 2.2.2)
+- TLS 1.2+ on all external traffic, publicly trusted certificates (12.1.1, 12.2.1, 12.2.2)
+- Approved ciphers and modes only — no ECB, no PKCS#1 v1.5 padding (11.3.1, 11.3.2)
+- No sensitive data in URLs or query strings (14.2.1)
+
+### Level 2 — what most applications should target
+- MFA, or a documented combination of single factors (6.3.3)
+- Passwords checked against a breached-password set (6.2.12)
+- No forced periodic password rotation — rotate only on compromise (6.2.10)
+- **All security logging starts here.** ASVS 5.0 has *no* L1 logging requirements; the whole
+  of V16 is L2+. Log authentication attempts, failed authorization, security events, and
+  unexpected errors (16.3.1–16.3.4)
+- Log entries carry when/where/who/what metadata on a synchronized clock (16.2.1, 16.2.2)
+- Logs encoded against log injection, protected from modification, shipped off-box (16.4.1–16.4.3)
+- Generic error message to the user; detail stays in the log (16.5.1)
+
+### Level 3 — highest assurance
+- One factor must be hardware-based and phishing-resistant, e.g. a FIDO key (6.3.3, L3 clause)
+- Log **all** authorization decisions, not only failures (16.3.2, L3 clause)
 
 ## Language-Specific Security Quirks
 
