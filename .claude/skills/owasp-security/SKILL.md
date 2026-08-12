@@ -8,23 +8,24 @@ description: Use when reviewing code for security vulnerabilities, implementing 
 Apply these security standards when writing or reviewing code.
 
 **Reference files** (load on demand):
-- [`reference/languages.md`](reference/languages.md) — per-language security quirks with unsafe/safe examples for 20+ languages.
-- [`reference/owasp-report.md`](reference/owasp-report.md) — comprehensive deep-dive on every OWASP 2025–2026 standard.
+- [`reference/languages.md`](reference/languages.md) — per-language security quirks with unsafe/safe examples for 20+ languages. Read the section for the language under review.
+- [`reference/config-and-supply-chain.md`](reference/config-and-supply-chain.md) — A02 and A03 (the #2 and #3 categories) as they actually appear: Dockerfiles, Kubernetes, Terraform, framework config, security headers, lockfiles, dependency confusion, and CI/CD workflows. Read this whenever the change touches config, IaC, dependencies, or pipelines.
+- [`reference/owasp-report.md`](reference/owasp-report.md) — deep-dive on every OWASP 2025–2026 standard: attack vectors, mitigations, and worked examples. It is long (~1100 lines); read only the section you need — Top 10:2025 (A01–A10), ASVS 5.0, LLM Top 10, or Agentic AI (ASI01–ASI10) — rather than the whole file.
 
 ## Quick Reference: OWASP Top 10:2025
 
-| # | Vulnerability | Key Prevention |
-|---|---------------|----------------|
-| A01 | Broken Access Control | Deny by default, enforce server-side, verify ownership |
-| A02 | Security Misconfiguration | Harden configs, disable defaults, minimize features |
-| A03 | Software Supply Chain Failures | Lock versions, verify integrity, audit dependencies |
-| A04 | Cryptographic Failures | TLS 1.2+, AES-256-GCM, Argon2/bcrypt for passwords |
-| A05 | Injection | Parameterized queries, input validation, safe APIs |
-| A06 | Insecure Design | Threat model, rate limit, design security controls |
-| A07 | Authentication Failures | MFA, check breached passwords, secure sessions |
-| A08 | Software or Data Integrity Failures | Sign packages, SRI for CDN, safe serialization |
-| A09 | Security Logging and Alerting Failures | Log security events, structured format, alerting |
-| A10 | Mishandling of Exceptional Conditions | Fail-closed, hide internals, log with context |
+| # | Vulnerability | Common CWEs | Key Prevention |
+|---|---------------|-------------|----------------|
+| A01 | Broken Access Control | CWE-284, CWE-639, CWE-862 | Deny by default, enforce server-side, verify ownership |
+| A02 | Security Misconfiguration | CWE-16, CWE-1188, CWE-614 | Harden configs, disable defaults, minimize features |
+| A03 | Software Supply Chain Failures | CWE-1104, CWE-1357, CWE-829 | Lock versions, verify integrity, audit dependencies |
+| A04 | Cryptographic Failures | CWE-311, CWE-327, CWE-328 | TLS 1.2+, AES-256-GCM, Argon2/bcrypt for passwords |
+| A05 | Injection | CWE-79, CWE-89, CWE-78 | Parameterized queries, input validation, safe APIs |
+| A06 | Insecure Design | CWE-657, CWE-799, CWE-1173 | Threat model, rate limit, design security controls |
+| A07 | Authentication Failures | CWE-287, CWE-307, CWE-384 | MFA, check breached passwords, secure sessions |
+| A08 | Software or Data Integrity Failures | CWE-502, CWE-345, CWE-494 | Sign packages, SRI for CDN, safe serialization |
+| A09 | Security Logging and Alerting Failures | CWE-778, CWE-117, CWE-532 | Log security events, structured format, alerting |
+| A10 | Mishandling of Exceptional Conditions | CWE-755, CWE-209, CWE-703 | Fail-closed, hide internals, log with context |
 
 ## Before Reporting a Finding
 
@@ -49,39 +50,125 @@ reaches this sink* — and say so explicitly when a finding is theoretical or de
 rather than directly exploitable. If reachability can't be determined from the code available,
 say that instead of asserting either way.
 
+## Reporting Format
+
+Report findings ordered by severity, highest first. One block per finding:
+
+```
+[SEVERITY] Title — CWE-###, OWASP A##:2025
+Location:  path/to/file.ext:LINE
+Path:      <entry point> → <intermediate hops> → <sink>
+Impact:    who can trigger it, what they get, which trust boundary it crosses
+Fix:       the concrete change, with a code snippet when it isn't obvious
+Confidence: Confirmed | Likely | Needs verification (say what you couldn't see)
+```
+
+Severity by exploitability, not by pattern:
+
+| Severity | Meaning |
+|---|---|
+| Critical | Unauthenticated remote code execution, auth bypass, or mass data exposure |
+| High | Authenticated exploitation crossing a trust boundary (IDOR to other tenants, SQLi behind login) |
+| Medium | Requires unusual preconditions, or impact is limited to the attacker's own data |
+| Low | Defense-in-depth gap with no demonstrated exploit path |
+| Info | Hardening suggestion; state plainly that it is not a vulnerability |
+
+If a review finds nothing exploitable, say so directly. Do not pad the report with Info items
+to appear thorough — inflating the list is what makes real findings get ignored.
+
 ## Security Code Review Checklist
 
 When reviewing code, check for these issues:
 
-### Input Handling
+### Input Handling (A05)
 - [ ] All user input validated server-side
 - [ ] Using parameterized queries (not string concatenation)
 - [ ] Input length limits enforced
 - [ ] Allowlist validation preferred over denylist
+- [ ] Output encoded for its context — HTML body, attribute, URL, JS, CSS are different rules
+- [ ] No raw HTML sinks fed by user data (`innerHTML`, `dangerouslySetInnerHTML`, `|safe`, `v-html`)
+- [ ] OS commands invoked with an argv array, never a shell string
+- [ ] XML parsers configured with external entity resolution disabled (XXE)
+- [ ] Templates never built from user input (SSTI)
 
-### Authentication & Sessions
+### Authentication & Sessions (A07)
 - [ ] Passwords hashed with Argon2/bcrypt (not MD5/SHA1)
 - [ ] Session tokens have sufficient entropy (128+ bits)
-- [ ] Sessions invalidated on logout
+- [ ] New session token issued on login (no session fixation)
+- [ ] Sessions invalidated on logout, password change, and account disable
+- [ ] Cookies set `HttpOnly`, `Secure`, and `SameSite=Lax` or stricter
 - [ ] MFA available for sensitive operations
+- [ ] JWTs: algorithm pinned server-side (`alg: none` and algorithm confusion rejected),
+      signature verified, `exp`/`aud`/`iss` checked
 
-### Access Control
+### Access Control (A01)
 - [ ] Authorization checked on every request
 - [ ] Using object references user cannot manipulate
 - [ ] Deny by default policy
 - [ ] Privilege escalation paths reviewed
+- [ ] Object-level checks verify ownership/tenancy, not just "is authenticated" (IDOR/BOLA)
+- [ ] State-changing requests protected against CSRF (token or `SameSite` + origin check)
+- [ ] Redirect targets validated against an allowlist (no open redirect)
+- [ ] CORS: no `Access-Control-Allow-Origin: *` combined with credentials, no origin reflection
 
-### Data Protection
+### Request Forgery & Outbound Calls (SSRF)
+- [ ] User-supplied URLs resolved and validated against an allowlist of hosts/schemes
+- [ ] Private, loopback, and link-local ranges blocked — including after DNS resolution
+- [ ] Redirects not followed blindly to a new host (re-validate each hop)
+- [ ] Cloud metadata endpoints (`169.254.169.254`) unreachable from the app
+
+### File Handling (A01/A05)
+- [ ] Upload type validated by content, not just extension or `Content-Type`
+- [ ] Uploads stored outside the web root, served with a non-executable content type
+- [ ] File size limits and quota enforced
+- [ ] Paths built from user input canonicalized and confined to a base directory (no `../`)
+- [ ] Archive extraction guards against path traversal and zip bombs
+
+### Configuration & Hardening (A02)
+> Concrete unsafe/safe examples per surface: [`reference/config-and-supply-chain.md`](reference/config-and-supply-chain.md)
+
+- [ ] Debug mode, verbose errors, and dev tooling disabled in production
+- [ ] Default credentials and sample/admin accounts removed
+- [ ] Unused features, ports, endpoints, and HTTP methods disabled
+- [ ] Security headers set: CSP without `unsafe-inline`/`unsafe-eval`, HSTS,
+      `X-Content-Type-Options: nosniff`, `Referrer-Policy`
+- [ ] Cloud storage and object buckets are not publicly readable/writable
+- [ ] Container/infra config reviewed (non-root user, no privileged mode, no secrets in image layers)
+
+### Dependencies & Supply Chain (A03)
+> Lockfile enforcement per ecosystem, dependency confusion, and CI/CD workflow attacks:
+> [`reference/config-and-supply-chain.md`](reference/config-and-supply-chain.md)
+
+- [ ] Lockfile committed and versions pinned (no floating ranges in production builds)
+- [ ] Dependencies scanned for known vulnerabilities and unmaintained packages
+- [ ] Package names checked against typosquats and dependency confusion (internal names claimed publicly)
+- [ ] Third-party scripts loaded with Subresource Integrity, or self-hosted
+- [ ] Build and CI scripts reviewed — install hooks and pipeline steps run with repo write access
+- [ ] Artifacts and releases signed; signatures verified before deploy
+
+### Serialization & Data Integrity (A08)
+- [ ] No deserialization of untrusted data with a native format (`pickle`, `Marshal`,
+      `ObjectInputStream`, `BinaryFormatter`, `yaml.load`)
+- [ ] JSON/schema-validated formats used instead, with a type allowlist
+- [ ] Auto-update and plugin loading verify signatures before execution
+
+### Data Protection (A04)
 - [ ] Sensitive data encrypted at rest
 - [ ] TLS for all data in transit
 - [ ] No sensitive data in URLs/logs
-- [ ] Secrets in environment/vault (not code)
+- [ ] Secrets in environment/vault (not code) — and not in git history or container layers
+- [ ] Authenticated encryption (AES-GCM/ChaCha20-Poly1305); no ECB, no unauthenticated CBC
+- [ ] IVs/nonces unique per encryption; randomness from a CSPRNG, not `Math.random`/`rand()`
+- [ ] Secrets and tokens compared in constant time
 
-### Error Handling
+### Error Handling & Logging (A09/A10)
 - [ ] No stack traces exposed to users
 - [ ] Fail-closed on errors (deny, not allow)
 - [ ] All exceptions logged with context
-- [ ] Consistent error responses (no enumeration)
+- [ ] Consistent error responses (no user/account enumeration via message or timing)
+- [ ] Auth events, authorization failures, and security-control failures logged
+- [ ] Logs exclude credentials, tokens, and PII; user input encoded to prevent log injection
+- [ ] Empty `catch` blocks and swallowed errors reviewed — silent failure hides attacks
 
 ## Secure Code Patterns
 
@@ -121,7 +208,10 @@ def get_user(user_id):
     return db.get_user(user_id)
 
 # SAFE - Authorization enforced
-@app.route('/api/user/<user_id>')
+# Note the <int:user_id> converter: with a plain <user_id> the value arrives as a
+# string and `current_user.id != user_id` is always true — a type mismatch that
+# silently changes the meaning of the check.
+@app.route('/api/user/<int:user_id>')
 @login_required
 def get_user(user_id):
     if current_user.id != user_id and not current_user.is_admin:
@@ -160,6 +250,44 @@ def check_permission(user, resource):
     except Exception as e:
         logger.error(f"Auth check failed: {e}")
         return False  # Deny on error
+```
+
+### Same Patterns in TypeScript / Node
+
+```typescript
+// SQL injection — UNSAFE
+db.query(`SELECT * FROM users WHERE id = ${userId}`);
+// SAFE: parameterized
+db.query("SELECT * FROM users WHERE id = $1", [userId]);
+
+// Command injection — UNSAFE (spawns a shell)
+exec(`convert ${filename} output.png`);
+// SAFE: argv array, no shell
+execFile("convert", [filename, "output.png"]);
+
+// Password storage — UNSAFE
+crypto.createHash("md5").update(password).digest("hex");
+// SAFE
+await argon2.hash(password);          // or bcrypt.hash(password, 12)
+
+// Access control — UNSAFE: trusts the client-supplied id
+app.get("/api/user/:id", (req, res) => res.json(getUser(req.params.id)));
+// SAFE: authenticate, then verify ownership (note the Number() — "1" !== 1)
+app.get("/api/user/:id", requireAuth, (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.sendStatus(400);
+  if (id !== req.user.id && !req.user.isAdmin) return res.sendStatus(403);
+  res.json(getUser(id));
+});
+
+// Error handling — UNSAFE: leaks internals
+app.use((err, req, res, next) => res.status(500).send(err.stack));
+// SAFE: generic response, correlated log
+app.use((err, req, res, next) => {
+  const errorId = randomUUID();
+  logger.error({ errorId, err }, "unhandled error");
+  res.status(500).json({ error: "An error occurred", id: errorId });
+});
 ```
 
 ## Agentic AI Security (OWASP 2026)
