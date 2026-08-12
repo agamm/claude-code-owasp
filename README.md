@@ -26,8 +26,9 @@ Location: `.claude/skills/owasp-security/`
 `SKILL.md` (the always-loaded core):
 - **OWASP Top 10:2025** quick reference table
 - **Finding-triage rubric** - confirm attacker-controlled input, sink reachability, and blast radius before reporting, to cut false positives
-- **Security code review checklists** for input handling, auth, access control, data protection, and error handling
-- **Secure code patterns** with unsafe/safe examples
+- **Security code review checklists** covering all ten categories - input handling, auth, access control, SSRF, file handling, configuration, dependencies, serialization, data protection, and error handling
+- **Reporting format** - fixed finding structure (CWE, input-to-sink path, confidence) with severity rated by exploitability
+- **Secure code patterns** with unsafe/safe examples in Python and TypeScript/Node
 - **OWASP Top 10 for LLM Applications (2025)** - LLM01-LLM10 risks for chatbots, RAG, and tool-calling apps
 - **OWASP Agentic AI Security (2026)** - ASI01-ASI10 risks for AI agent systems
 - **ASVS 5.0** key requirements with real 5.0 requirement IDs and levels
@@ -35,6 +36,7 @@ Location: `.claude/skills/owasp-security/`
 
 `reference/` (loaded on demand, following Claude Code progressive-disclosure best practices):
 - **`languages.md`** - language-specific security quirks for 20+ languages with unsafe/safe examples
+- **`config-and-supply-chain.md`** - A02 and A03 where they actually live: Dockerfiles, Kubernetes, Terraform, framework config, security headers, lockfile enforcement per ecosystem, dependency confusion, install scripts, and CI/CD workflow attacks
 - **`owasp-report.md`** - deep-dive on the Top 10:2025, ASVS 5.0, the LLM Top 10 (2025), and the Agentic list (2026), with per-item attack vectors and mitigations
 
 ### Accuracy

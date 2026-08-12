@@ -56,7 +56,9 @@ def get_user(user_id):
     return db.get_user(user_id)
 
 # GOOD: Authorization enforced
-@app.route('/api/user/<user_id>')
+# <int:user_id> matters — with a plain <user_id> the value is a string and the
+# comparison against an integer id is always true, quietly breaking the check.
+@app.route('/api/user/<int:user_id>')
 @login_required
 def get_user(user_id):
     if current_user.id != user_id and not current_user.is_admin:
@@ -109,6 +111,9 @@ CSRF_COOKIE_SECURE=True
 5. Send security directives (CSP, HSTS, X-Frame-Options)
 6. Automated verification of configurations in all environments
 
+**Reviewing actual config:** see [`config-and-supply-chain.md`](config-and-supply-chain.md) for
+Dockerfile, Kubernetes, Terraform, framework, and security-header specifics.
+
 ---
 
 ### A03:2025 – Software Supply Chain Failures
@@ -154,6 +159,10 @@ npm audit signatures
 5. Sign packages and verify signatures
 6. Ensure CI/CD pipelines have proper access controls and audit logs
 7. Use lock files and verify integrity hashes
+
+**Reviewing actual manifests and pipelines:** see
+[`config-and-supply-chain.md`](config-and-supply-chain.md) for per-ecosystem lockfile
+enforcement, dependency confusion, install scripts, and GitHub Actions attack patterns.
 
 ---
 

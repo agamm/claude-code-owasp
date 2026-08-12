@@ -31,33 +31,46 @@ Different languages have unique security pitfalls. This file covers the top 20 l
 ### JavaScript / TypeScript
 **Main Risks:** Prototype pollution, XSS, eval injection
 ```javascript
-// UNSAFE: Prototype pollution
-Object.assign(target, userInput)
-// SAFE: Use null prototype or validate keys
-Object.assign(Object.create(null), validated)
+// UNSAFE: Prototype pollution — the vector is RECURSIVE merge, not a shallow copy.
+// Payload {"__proto__": {"isAdmin": true}} reaches Object.prototype for every object.
+deepMerge(config, JSON.parse(body))   // lodash.merge, _.set, hand-rolled merges
+// SAFE: reject the dangerous keys, or work on a prototype-less object
+for (const k of ["__proto__", "constructor", "prototype"]) delete input[k];
+const safe = Object.assign(Object.create(null), validated);
 
-// UNSAFE: eval injection
-eval(userCode)
-// SAFE: Never use eval with user input
+// UNSAFE: eval injection (and its aliases)
+eval(userCode); new Function(userCode); setTimeout(userCode, 0);
+// SAFE: Never build executable code from user input
 ```
-**Watch for:** `eval()`, `innerHTML`, `document.write()`, prototype chain manipulation, `__proto__`
+**Watch for:** `eval()`, `new Function()`, string arguments to `setTimeout`/`setInterval`,
+`innerHTML`, `outerHTML`, `insertAdjacentHTML`, `document.write()`, `dangerouslySetInnerHTML`,
+`location`/`href` assignment from user input, `__proto__` and `constructor.prototype`,
+`postMessage` handlers without an `origin` check.
 
 ---
 
 ### Python
-**Main Risks:** Pickle deserialization, format string injection, shell injection
+**Main Risks:** Pickle deserialization, format string injection, SQL/shell injection
 ```python
 # UNSAFE: Pickle RCE
 pickle.loads(user_data)
 # SAFE: Use JSON or validate source
 json.loads(user_data)
 
-# UNSAFE: Format string injection
+# UNSAFE: SQL injection via string interpolation
 query = "SELECT * FROM users WHERE name = '%s'" % user_input
 # SAFE: Parameterized
 cursor.execute("SELECT * FROM users WHERE name = %s", (user_input,))
+
+# UNSAFE: Format string injection — user controls the TEMPLATE, not the argument.
+# "{u.__class__.__init__.__globals__[SECRET]}" walks attributes and leaks module globals.
+user_template.format(u=user)
+# SAFE: template is a literal, user data is an argument
+"Hello {name}".format(name=user_input)
 ```
-**Watch for:** `pickle`, `eval()`, `exec()`, `os.system()`, `subprocess` with `shell=True`
+**Watch for:** `pickle`, `yaml.load` without `SafeLoader`, `eval()`, `exec()`, `os.system()`,
+`subprocess` with `shell=True`, user-controlled format templates, `jinja2.Template(user_input)`
+(SSTI), `__import__`
 
 ---
 
@@ -93,10 +106,14 @@ var obj = JsonSerializer.Deserialize<SafeType>(json);
 ### PHP
 **Main Risks:** Type juggling, file inclusion, object injection
 ```php
-// UNSAFE: Type juggling in auth
+// UNSAFE: Type juggling — "magic hashes" like "0e123" == "0e456" both cast to float 0
 if ($password == $stored_hash) { ... }
-// SAFE: Use strict comparison
-if (hash_equals($stored_hash, $password)) { ... }
+// SAFE: Verify against a password hash (constant-time, algorithm-aware)
+if (password_verify($password, $stored_hash)) { ... }
+// Store with password_hash(); never md5/sha1, never your own salt scheme
+$hash = password_hash($password, PASSWORD_DEFAULT);
+// Comparing two known strings (tokens, HMACs, webhook signatures):
+if (hash_equals($expected_token, $provided_token)) { ... }
 
 // UNSAFE: File inclusion
 include($_GET['page'] . '.php');
@@ -147,11 +164,12 @@ YAML.safe_load(user_input)
 // CAUTION: Unsafe bypasses safety
 unsafe { ptr::read(user_ptr) }
 
-// CAUTION: Release integer overflow
-let x: u8 = 255;
-let y = x + 1; // Wraps to 0 in release!
-// SAFE: Use checked arithmetic
-let y = x.checked_add(1).unwrap_or(255);
+// CAUTION: Integer overflow panics in debug, wraps silently in release
+// (a literal `255u8 + 1` is a compile error — this only bites on runtime values)
+let x: u8 = parse_user_len(input);
+let y = x + 1; // panic in debug; wraps to 0 in release (overflow-checks = off)
+// SAFE: Be explicit about the overflow case
+let y = x.checked_add(1).ok_or(Error::TooLarge)?;
 ```
 **Watch for:** `unsafe` blocks, FFI calls, integer overflow in release builds, `.unwrap()` on untrusted input
 
@@ -194,15 +212,21 @@ clazz.getDeclaredMethod(userInput)
 ```c
 // UNSAFE: Buffer overflow
 char buf[10]; strcpy(buf, userInput);
-// SAFE: Bounds checking
-strncpy(buf, userInput, sizeof(buf) - 1);
+
+// ALSO UNSAFE: strncpy does NOT null-terminate when src >= n
+strncpy(buf, userInput, sizeof(buf) - 1);   // buf may be unterminated
+
+// SAFE: snprintf always terminates and reports truncation
+if (snprintf(buf, sizeof buf, "%s", userInput) >= (int)sizeof buf) {
+    /* input was truncated — decide explicitly, don't ignore */
+}
 
 // UNSAFE: Format string
 printf(userInput);
 // SAFE: Always use format specifier
 printf("%s", userInput);
 ```
-**Watch for:** `strcpy`, `sprintf`, `gets`, pointer arithmetic, manual memory management, integer overflow
+**Watch for:** `strcpy`, `strncpy` (no null terminator), `sprintf`, `gets`, `alloca` with user size, pointer arithmetic, manual memory management, integer overflow in size calculations before `malloc`
 
 ---
 
