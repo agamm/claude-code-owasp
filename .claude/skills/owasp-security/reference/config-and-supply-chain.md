@@ -216,21 +216,25 @@ SESSION_COOKIE_SECURE = False
 
 ## A03: Dependency Manifests and Lockfiles
 
-The recurring finding is a lockfile that exists but is not enforced, which means CI resolves
-fresh versions and the review you did does not describe what ships.
+The recurring finding is a lockfile that is missing, or one the build is allowed to rewrite,
+so what ships can differ from what was reviewed. Most JS package managers read the lockfile on a
+plain install; the question is whether a mismatch with the manifest fails the build or silently
+updates the lock.
 
-| Ecosystem | Resolves fresh (unsafe in CI) | Honors the lockfile |
+| Ecosystem | Reads the lockfile but may rewrite it | Fails if the lockfile is out of sync |
 |---|---|---|
-| npm | `npm install` | `npm ci` |
-| yarn | `yarn install` | `yarn install --immutable` |
-| pnpm | `pnpm install` | `pnpm install --frozen-lockfile` |
+| npm | `npm install` (updates the lock when `package.json` disagrees) | `npm ci` |
+| Yarn 2+ | `yarn install` outside CI | `yarn install --immutable`, the default when Yarn detects CI (`enableImmutableInstalls`) |
+| Yarn 1 | `yarn install` | `yarn install --frozen-lockfile` |
+| pnpm | `pnpm install` outside CI | `pnpm install --frozen-lockfile`, the default in CI when a lockfile exists |
 | Python | `pip install -r requirements.txt` (unpinned) | pinned `==` + hashes, `pip install --require-hashes`, or `uv sync --frozen` / `poetry install` with committed lock |
 | Go | - | `go mod verify` + committed `go.sum` |
 | Rust | - | committed `Cargo.lock` (binaries), `cargo --locked` |
 | Java | version ranges in `pom.xml` | fixed versions + `dependency-lock` / `mvn -o` with verified checksums |
 
-**Check for:** floating ranges (`^`, `~`, `*`, `latest`) reaching production builds; lockfile
-missing or gitignored; `requirements.txt` without `==`; a lockfile whose `resolved` URLs point at
+**Check for:** a lockfile missing or gitignored; a production build step that can rewrite it
+(`npm install` in CI, or `enableImmutableInstalls: false` / `--no-frozen-lockfile` overriding the
+CI default); floating ranges (`^`, `~`, `*`, `latest`) with no enforced lockfile behind them; `requirements.txt` without `==`; a lockfile whose `resolved` URLs point at
 a registry other than the expected one; and vulnerable-but-unused dependencies (they still count
 if the code path is reachable - check before rating severity).
 

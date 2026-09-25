@@ -42,7 +42,8 @@ function safeMerge(target, src) {
     if (BLOCKED.has(k)) continue;
     const v = src[k];
     if (v && typeof v === "object" && !Array.isArray(v)) {
-      if (!Object.hasOwn(target, k) || typeof target[k] !== "object") target[k] = {};
+      const cur = Object.hasOwn(target, k) ? target[k] : undefined;
+      if (!cur || typeof cur !== "object" || Array.isArray(cur)) target[k] = {};
       safeMerge(target[k], v);
     } else {
       target[k] = v;
