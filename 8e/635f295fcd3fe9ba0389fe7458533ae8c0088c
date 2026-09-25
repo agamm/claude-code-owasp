@@ -1,0 +1,37 @@
+README.md
+  s_32653578869b0f::t_6dfd7f3aca79bd 48
+  s_32653578869b0f::t_22fcedd20acfc6 55-56,59-60
+  s_32653578869b0f::t_576194248fd5cf 40,88,141
+.claude/skills/owasp-security/reference/review-checklist.md
+  s_32653578869b0f::t_6dfd7f3aca79bd 19,112,115,117,119-121,125
+.claude/skills/owasp-security/SKILL.md
+  s_32653578869b0f::t_6dfd7f3aca79bd 3,117,119-120,124,126-133,141-142,147
+.claude-plugin/marketplace.json
+  s_32653578869b0f::t_576194248fd5cf 12
+.claude/skills/owasp-security/reference/config-and-supply-chain.md
+  s_32653578869b0f::t_fa1e087268df4e 230-236
+  s_32653578869b0f::t_468b996bc9348d 224,239-240
+evals/llm-agent-output-handling/graders/names-risk-ids.md
+  s_32653578869b0f::t_576194248fd5cf 3
+.claude/skills/owasp-security/reference/owasp-report.md
+  s_32653578869b0f::t_2a78ebdb1cd36d 11,597,603-617,622,624-631,700-732,751,770,772-773,776-779,783-786,788-794,798-800,805,807-808,812-814,817-820,824,826-830,834-841,844-847,851,870,872,876-879,883-884,886-889,893-896,910-911,923,942,1118
+  s_32653578869b0f::t_7007ff0a6039d8 801,811,873
+.claude-plugin/plugin.json
+  s_32653578869b0f::t_576194248fd5cf 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8e635f295fcd3fe9ba0389fe7458533ae8c0088c",
+  "prompts": {},
+  "sessions": {
+    "s_32653578869b0f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "234bcf90-d232-4d13-a258-024e955dde58",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Agam More <Agam@agam.me>"
+    }
+  }
+}
