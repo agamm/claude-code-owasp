@@ -1,0 +1,28 @@
+CLAUDE.md
+  s_32653578869b0f::t_3800927295fc72 1-19
+README.md
+  s_32653578869b0f::t_94022b945ccf87 45
+.claude/skills/owasp-security/SKILL.md
+  s_32653578869b0f::t_94022b945ccf87 12
+.claude/skills/owasp-security/reference/review-checklist.md
+  s_32653578869b0f::t_94022b945ccf87 65-70,111-126
+  s_32653578869b0f::t_7a38a1fb72540c 7-20
+.claude/skills/owasp-security/reference/languages.md
+  s_32653578869b0f::t_94022b945ccf87 37-52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "deb91ca1d616c963d260d111cb398e60a77252a5",
+  "prompts": {},
+  "sessions": {
+    "s_32653578869b0f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "234bcf90-d232-4d13-a258-024e955dde58",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Agam More <Agam@agam.me>"
+    }
+  }
+}
