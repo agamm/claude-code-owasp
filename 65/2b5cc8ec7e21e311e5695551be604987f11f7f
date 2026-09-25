@@ -1,0 +1,31 @@
+evals/conditional-risk-severity/graders/skill-fired.md
+  s_32653578869b0f::t_f1224d45b5bee2 1-5
+evals/conditional-risk-severity/graders/mentions-symlink-risk.md
+  s_32653578869b0f::t_f1224d45b5bee2 1-5
+scripts/test-graders.mjs
+  s_32653578869b0f::t_9e53a42dddddf4 58-65
+evals/conditional-risk-severity/graders/rates-conditional-risk.md
+  s_32653578869b0f::t_f1224d45b5bee2 1-7
+evals/conditional-risk-severity/graders/no-high-or-critical.md
+  s_32653578869b0f::t_f1224d45b5bee2 1-6
+evals/conditional-risk-severity/prompt.md
+  s_32653578869b0f::t_f1224d45b5bee2 1-35
+evals/safe-code-no-false-positives/prompt.md
+  s_32653578869b0f::t_f1224d45b5bee2 33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "652b5cc8ec7e21e311e5695551be604987f11f7f",
+  "prompts": {},
+  "sessions": {
+    "s_32653578869b0f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "234bcf90-d232-4d13-a258-024e955dde58",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Agam More <Agam@agam.me>"
+    }
+  }
+}
