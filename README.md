@@ -4,12 +4,24 @@ A Claude Code skill providing the latest OWASP security best practices (2025-202
 
 ## Quick Install
 
-Install as a Claude Code plugin, which also keeps it updated:
+Install as a Claude Code plugin:
 
 ```
 /plugin marketplace add agamm/claude-code-owasp
 /plugin install owasp-security@agamm
 ```
+
+### Updating
+
+Third-party marketplaces don't auto-update by default. Either update by hand:
+
+```bash
+claude plugin marketplace update agamm
+claude plugin update owasp-security@agamm
+```
+
+or turn on auto-update once: run `/plugin`, open the **Marketplaces** tab, select `agamm`, and
+choose **Enable auto-update**. Updates apply to the next session, or run `/reload-plugins`.
 
 ### Install as a plain skill
 

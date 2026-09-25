@@ -123,4 +123,10 @@ touch. A checked-off gap is a lead to trace, not a finding: run it through the t
 - [ ] Writes to agent memory or the vector store validated, so untrusted content can't persist
       instructions (ASI06)
 - [ ] Per-user caps on requests, tokens, tool calls, and cost, plus hard timeouts (LLM06)
-- [ ] Tool calls logged, with a way to stop a running agent (ASI08, ASI10)
+- [ ] Messages between agents authenticated and integrity-checked; a receiving agent doesn't
+      trust the sender's claims about identity or authority (ASI07)
+- [ ] One agent's failure or bad output can't cascade: step, retry, and fan-out limits, plus
+      circuit breakers between components (ASI08)
+- [ ] AI-generated content labelled; approval prompts show the real action, so an agent can't
+      talk a user into approving something else (ASI09)
+- [ ] Tool calls logged, with a way to stop a running agent (ASI10)
