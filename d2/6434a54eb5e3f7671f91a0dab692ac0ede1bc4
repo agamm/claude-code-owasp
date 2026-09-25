@@ -1,0 +1,31 @@
+scripts/test-graders.mjs
+  s_32653578869b0f::t_8fc1d9a662caf1 1-31,33-44,46-67
+  s_32653578869b0f::t_ee53051b3c3f49 32,45
+.claude/skills/owasp-security/SKILL.md
+  s_32653578869b0f::t_4e3ebb3ad45b59 80,88-89
+  s_32653578869b0f::t_ce00bf8d12b8ed 90
+evals/llm-agent-output-handling/graders/no-2025-pairings.md
+  s_32653578869b0f::t_4e3ebb3ad45b59 1-4,6
+  s_32653578869b0f::t_ee53051b3c3f49 5
+CLAUDE.md
+  s_32653578869b0f::t_b85fb2b8e6f5aa 20-21
+evals/llm-agent-output-handling/graders/names-2026-core-risk.md
+  s_32653578869b0f::t_4e3ebb3ad45b59 1-3,5
+  s_32653578869b0f::t_ee53051b3c3f49 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d26434a54eb5e3f7671f91a0dab692ac0ede1bc4",
+  "prompts": {},
+  "sessions": {
+    "s_32653578869b0f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "234bcf90-d232-4d13-a258-024e955dde58",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Agam More <Agam@agam.me>"
+    }
+  }
+}
