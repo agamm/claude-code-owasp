@@ -225,19 +225,19 @@ updates the lock.
 |---|---|---|
 | npm | `npm install` (updates the lock when `package.json` disagrees) | `npm ci` |
 | Yarn 2+ | `yarn install` outside CI | `yarn install --immutable`, the default when Yarn detects CI (`enableImmutableInstalls`) |
-| Yarn 1 | `yarn install` | `yarn install --frozen-lockfile` |
+| Yarn 1 | `yarn install`; `--frozen-lockfile` still succeeds when `yarn.lock` is missing | `yarn install --frozen-lockfile` plus an explicit check that `yarn.lock` exists |
 | pnpm | `pnpm install` outside CI | `pnpm install --frozen-lockfile`, the default in CI when a lockfile exists |
 | pip | `pip install -r requirements.txt` without hashes | `pip install --require-hashes -r requirements.txt` (every entry pinned `==` with `--hash`) |
 | uv | `uv sync`, or `uv sync --frozen` (uses the lock without checking it is current) | `uv sync --locked` |
 | Poetry | `poetry install` | `poetry check --lock` before install |
-| Go | `-mod=mod` (updates `go.mod`) | the default `-mod=readonly` since Go 1.16, with `go.sum` committed; `go mod verify` checks the module cache against it |
+| Go | `-mod=mod` (updates `go.mod`) | the default `-mod=readonly` since Go 1.16, with `go.sum` committed. `go mod verify` is separate: it checks the module cache for local tampering against hashes recorded at download |
 | Rust | `cargo build` (may update `Cargo.lock`) | `cargo build --locked` |
-| Gradle | dynamic versions with no lock | dependency locking enabled (`--write-locks`); resolution fails if versions differ from the lock |
+| Gradle | dynamic versions with no lock; any CI build run with `--write-locks` (overwrites lock state) or `--update-locks` (rewrites the named entries) | committed `gradle.lockfile` with `lockMode = LockMode.STRICT` (also fails when a locked configuration has no lock state) |
 | Maven | version ranges in `pom.xml` | no native lockfile: pin exact versions and forbid ranges |
 
 **Check for:** a lockfile missing or gitignored; a production build step that can rewrite it
-(`npm install` in CI, `uv sync --frozen` where `--locked` was meant, or `enableImmutableInstalls: false`
-/ `--no-frozen-lockfile` overriding the CI default); floating ranges (`^`, `~`, `*`, `latest`) with no enforced lockfile behind them; `requirements.txt` without `==`; a lockfile whose `resolved` URLs point at
+(`npm install` in CI, `uv sync --frozen` where `--locked` was meant, Gradle `--write-locks` in CI, or
+`enableImmutableInstalls: false` / `--no-frozen-lockfile` overriding the CI default); floating ranges (`^`, `~`, `*`, `latest`) with no enforced lockfile behind them; `requirements.txt` without `==`; a lockfile whose `resolved` URLs point at
 a registry other than the expected one; and vulnerable-but-unused dependencies (they still count
 if the code path is reachable - check before rating severity).
 
