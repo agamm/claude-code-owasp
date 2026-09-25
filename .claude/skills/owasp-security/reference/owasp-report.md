@@ -50,13 +50,14 @@ tell that a reference is out of date.
 
 **Prevention:**
 ```python
-# BAD: No authorization check
+# UNSAFE: No authorization check
 @app.route('/api/user/<user_id>')
 def get_user(user_id):
     return db.get_user(user_id)
 
-# GOOD: Authorization enforced
-@app.route('/api/user/<user_id>')
+# SAFE: Authorization enforced
+# <int:user_id>: a plain <user_id> arrives as a str, so `!=` against an int id is always true
+@app.route('/api/user/<int:user_id>')
 @login_required
 def get_user(user_id):
     if current_user.id != user_id and not current_user.is_admin:
@@ -88,11 +89,11 @@ def get_user(user_id):
 
 **Prevention:**
 ```yaml
-# BAD: Debug mode in production
+# UNSAFE: Debug mode in production
 DEBUG=True
 SECRET_KEY="development-key"
 
-# GOOD: Production hardened
+# SAFE: Production hardened
 DEBUG=False
 SECRET_KEY="${RANDOM_SECRET_FROM_VAULT}"
 ALLOWED_HOSTS=["app.example.com"]
@@ -108,6 +109,9 @@ CSRF_COOKIE_SECURE=True
 4. Segmented application architecture with secure separation
 5. Send security directives (CSP, HSTS, X-Frame-Options)
 6. Automated verification of configurations in all environments
+
+For Dockerfile, Kubernetes, Terraform, framework config, and security headers, see
+[`config-and-supply-chain.md`](config-and-supply-chain.md).
 
 ---
 
@@ -125,10 +129,10 @@ CSRF_COOKIE_SECURE=True
 
 **Prevention:**
 ```bash
-# BAD: Installing without verification
+# UNSAFE: Installing without verification
 npm install some-package
 
-# GOOD: Lock versions, verify integrity, audit
+# SAFE: Lock versions, verify integrity, audit
 npm install some-package@1.2.3 --save-exact
 npm audit
 npm audit signatures
@@ -155,6 +159,9 @@ npm audit signatures
 6. Ensure CI/CD pipelines have proper access controls and audit logs
 7. Use lock files and verify integrity hashes
 
+For per-ecosystem lockfile enforcement, dependency confusion, install scripts, and CI/CD
+attacks, see [`config-and-supply-chain.md`](config-and-supply-chain.md).
+
 ---
 
 ### A04:2025 – Cryptographic Failures
@@ -171,20 +178,20 @@ npm audit signatures
 
 **Prevention:**
 ```python
-# BAD: Weak hashing
+# UNSAFE: Weak hashing
 import hashlib
 password_hash = hashlib.md5(password.encode()).hexdigest()
 
-# GOOD: Modern password hashing
+# SAFE: Modern password hashing
 from argon2 import PasswordHasher
 ph = PasswordHasher()
 password_hash = ph.hash(password)
 
-# BAD: ECB mode
+# UNSAFE: ECB mode
 from Crypto.Cipher import AES
 cipher = AES.new(key, AES.MODE_ECB)
 
-# GOOD: Authenticated encryption
+# SAFE: Authenticated encryption
 from cryptography.fernet import Fernet
 cipher = Fernet(key)
 ```
@@ -212,25 +219,25 @@ cipher = Fernet(key)
 
 **Prevention:**
 ```python
-# BAD: SQL Injection vulnerable
+# UNSAFE: SQL Injection vulnerable
 query = f"SELECT * FROM users WHERE id = {user_id}"
 cursor.execute(query)
 
-# GOOD: Parameterized query
+# SAFE: Parameterized query
 cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
 
-# BAD: Command injection
+# UNSAFE: Command injection
 os.system(f"convert {filename} output.png")
 
-# GOOD: Use safe APIs, avoid shell
+# SAFE: Use safe APIs, avoid shell
 subprocess.run(["convert", filename, "output.png"], shell=False)
 ```
 
 ```javascript
-// BAD: NoSQL injection
+// UNSAFE: NoSQL injection
 db.users.find({ username: req.body.username })
 
-// GOOD: Validate type
+// SAFE: Validate type
 if (typeof req.body.username !== 'string') throw new Error();
 db.users.find({ username: req.body.username })
 ```
@@ -257,13 +264,13 @@ db.users.find({ username: req.body.username })
 
 **Prevention:**
 ```python
-# BAD: No rate limiting on password reset
+# UNSAFE: No rate limiting on password reset
 @app.route('/password-reset', methods=['POST'])
 def password_reset():
     send_reset_email(request.form['email'])
     return "Email sent"
 
-# GOOD: Rate limiting and verification
+# SAFE: Rate limiting and verification
 from flask_limiter import Limiter
 limiter = Limiter(app)
 
@@ -345,21 +352,21 @@ def logout():
 
 **Prevention:**
 ```html
-<!-- BAD: CDN without integrity -->
+<!-- UNSAFE: CDN without integrity -->
 <script src="https://cdn.example.com/lib.js"></script>
 
-<!-- GOOD: Subresource Integrity -->
+<!-- SAFE: Subresource Integrity -->
 <script src="https://cdn.example.com/lib.js"
         integrity="sha384-abc123..."
         crossorigin="anonymous"></script>
 ```
 
 ```python
-# BAD: Unsafe deserialization
+# UNSAFE: Unsafe deserialization
 import pickle
 data = pickle.loads(user_input)
 
-# GOOD: Safe serialization with validation
+# SAFE: Safe serialization with validation
 import json
 data = json.loads(user_input)
 validate_schema(data)
@@ -434,12 +441,12 @@ def login():
 
 **Prevention:**
 ```python
-# BAD: Leaking information
+# UNSAFE: Leaking information
 @app.errorhandler(Exception)
 def handle_error(e):
     return str(e), 500  # Exposes internal details
 
-# GOOD: Secure error handling
+# SAFE: Secure error handling
 @app.errorhandler(Exception)
 def handle_error(e):
     error_id = uuid.uuid4()
@@ -448,14 +455,14 @@ def handle_error(e):
 ```
 
 ```python
-# BAD: Fail-open
+# UNSAFE: Fail-open
 def check_permission(user, resource):
     try:
         return authorization_service.check(user, resource)
     except Exception:
         return True  # Fail-open!
 
-# GOOD: Fail-closed
+# SAFE: Fail-closed
 def check_permission(user, resource):
     try:
         return authorization_service.check(user, resource)
