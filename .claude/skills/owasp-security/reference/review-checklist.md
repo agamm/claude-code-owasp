@@ -4,6 +4,20 @@ Coverage list for step 3 of the review workflow in `SKILL.md`. Skip sections the
 touch. A checked-off gap is a lead to trace, not a finding: run it through the triage rubric in
 `SKILL.md` before reporting it.
 
+## Contents
+- Input Handling (A05)
+- Authentication & Sessions (A07)
+- Access Control (A01)
+- Server-Side Request Forgery (A01)
+- File Handling (A01)
+- Insecure Design (A06)
+- Configuration & Hardening (A02)
+- Dependencies & Supply Chain (A03)
+- Serialization & Data Integrity (A08)
+- Data Protection (A04)
+- Error Handling & Logging (A09/A10)
+- LLM and Agent Features (LLM Top 10 2025, Agentic 2026)
+
 ## Input Handling (A05)
 - [ ] All user input validated server-side
 - [ ] Using parameterized queries (not string concatenation)
@@ -48,6 +62,12 @@ touch. A checked-off gap is a lead to trace, not a finding: run it through the t
 - [ ] Paths built from user input canonicalized and confined to a base directory (no `../`)
 - [ ] Archive extraction guards against path traversal and zip bombs
 
+## Insecure Design (A06)
+- [ ] Prices, quantities, roles, and state transitions decided server-side, never taken from the client
+- [ ] Rate limits on login, password reset, OTP, signup, and expensive operations
+- [ ] Multi-step flows can't be skipped, reordered, or replayed (one-time tokens, idempotency keys)
+- [ ] Balance, inventory, and coupon updates are atomic (no check-then-write race)
+
 ## Configuration & Hardening (A02)
 - [ ] Debug mode, verbose errors, and dev tooling disabled in production
 - [ ] Default credentials and sample/admin accounts removed
@@ -88,3 +108,19 @@ touch. A checked-off gap is a lead to trace, not a finding: run it through the t
 - [ ] Auth events, authorization failures, and security-control failures logged
 - [ ] Logs exclude credentials, tokens, and PII; user input encoded to prevent log injection
 - [ ] Empty `catch` blocks and swallowed errors reviewed: silent failure hides attacks
+
+## LLM and Agent Features (LLM Top 10 2025, Agentic 2026)
+- [ ] Untrusted text (user input, web pages, email, RAG chunks, tool output) can't steer a model
+      that holds privileged tools (LLM01, ASI01)
+- [ ] Model output validated or escaped before any SQL, shell, HTML, code, or tool argument (LLM05)
+- [ ] Tools minimal and scoped; no general shell or HTTP tool unless required; destructive
+      actions need human approval (LLM06, ASI02)
+- [ ] Agent credentials short-lived and scoped to the task, never an admin or the user's full session (ASI03)
+- [ ] Retrieval enforces the caller's tenant and permissions at query time (LLM02, LLM08)
+- [ ] No secrets or authorization logic in the system prompt (LLM07)
+- [ ] MCP servers, plugins, and models pinned and from trusted sources (LLM03, ASI04)
+- [ ] Generated code runs in a sandbox (ASI05)
+- [ ] Writes to agent memory or the vector store validated, so untrusted content can't persist
+      instructions (ASI06)
+- [ ] Per-user caps on requests, tokens, tool calls, and cost, plus hard timeouts (LLM10)
+- [ ] Tool calls logged, with a way to stop a running agent (ASI08, ASI10)

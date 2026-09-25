@@ -9,7 +9,7 @@ when_to_use: Trigger phrases include "security review", "security check", "anyth
 Apply these standards when writing or reviewing code. For a review, follow the workflow below.
 
 **Reference files** (read the one the task needs, and only the section you need):
-- [`reference/review-checklist.md`](reference/review-checklist.md): coverage checklist by Top 10 category. Read during step 3 of a review.
+- [`reference/review-checklist.md`](reference/review-checklist.md): coverage checklist for every Top 10 category, plus LLM and agent checks. Read during step 3 of a review.
 - [`reference/languages.md`](reference/languages.md): per-language pitfalls with unsafe/safe examples for 20+ languages. Read the section for the language under review.
 - [`reference/config-and-supply-chain.md`](reference/config-and-supply-chain.md): A02 and A03 in Dockerfiles, Kubernetes, Terraform, framework config, security headers, lockfiles, and CI/CD. Read when the change touches config, IaC, dependencies, or pipelines.
 - [`reference/owasp-report.md`](reference/owasp-report.md): attack vectors, mitigations, and worked examples for every Top 10:2025, ASVS 5.0, LLM Top 10, and Agentic item. About 1100 lines: jump to the section you need.

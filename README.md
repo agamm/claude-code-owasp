@@ -42,7 +42,7 @@ Location: `.claude/skills/owasp-security/`
 - **ASVS 5.0** key requirements with real 5.0 requirement IDs and levels
 
 `reference/` (loaded on demand, following Claude Code progressive-disclosure best practices):
-- **`review-checklist.md`** - coverage checklist for every Top 10 category, including SSRF, file handling, JWTs, CORS, and CSRF
+- **`review-checklist.md`** - coverage checklist for every Top 10 category (including SSRF, file handling, JWTs, CORS, and CSRF) plus LLM and agent features
 - **`languages.md`** - language-specific security quirks for 20+ languages with unsafe/safe examples
 - **`config-and-supply-chain.md`** - A02 and A03 where they actually live: Dockerfiles, Kubernetes, Terraform, framework config, security headers, lockfiles, dependency confusion, install scripts, and CI/CD workflows
 - **`owasp-report.md`** - deep-dive on the Top 10:2025, ASVS 5.0, the LLM Top 10 (2025), and the Agentic list (2026), with per-item attack vectors and mitigations

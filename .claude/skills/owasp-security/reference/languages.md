@@ -34,9 +34,22 @@ Different languages have unique security pitfalls. This file covers the top 20 l
 // UNSAFE: Prototype pollution - the vector is RECURSIVE merge, not a shallow copy.
 // Payload {"__proto__": {"isAdmin": true}} reaches Object.prototype for every object.
 deepMerge(config, JSON.parse(body))   // lodash.merge, _.set, hand-rolled merges
-// SAFE: reject the dangerous keys, or work on a prototype-less object
-for (const k of ["__proto__", "constructor", "prototype"]) delete input[k];
-const safe = Object.assign(Object.create(null), validated);
+// SAFE: skip the dangerous keys at every depth (stripping only the top level misses
+// {"a": {"__proto__": ...}}), or validate against a schema before merging
+const BLOCKED = new Set(["__proto__", "constructor", "prototype"]);
+function safeMerge(target, src) {
+  for (const k of Object.keys(src)) {
+    if (BLOCKED.has(k)) continue;
+    const v = src[k];
+    if (v && typeof v === "object" && !Array.isArray(v)) {
+      if (!Object.hasOwn(target, k) || typeof target[k] !== "object") target[k] = {};
+      safeMerge(target[k], v);
+    } else {
+      target[k] = v;
+    }
+  }
+  return target;
+}
 
 // UNSAFE: eval injection (and its aliases)
 eval(userCode); new Function(userCode); setTimeout(userCode, 0);
