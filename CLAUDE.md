@@ -17,3 +17,5 @@ done
   frontmatter, run the suite again.
 - Name any case that scores lower with the skill than without it, and why. Don't hide a regression.
 - `evals/results/` is gitignored. Don't commit it.
+- After editing any regex grader, run `node scripts/test-graders.mjs` (free, no model calls) and
+  add a pass and a fail example for the new behavior.
