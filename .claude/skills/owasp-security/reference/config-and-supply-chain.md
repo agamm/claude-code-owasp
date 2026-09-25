@@ -221,20 +221,23 @@ so what ships can differ from what was reviewed. Most JS package managers read t
 plain install; the question is whether a mismatch with the manifest fails the build or silently
 updates the lock.
 
-| Ecosystem | Reads the lockfile but may rewrite it | Fails if the lockfile is out of sync |
+| Ecosystem | Does not enforce the lock (may rewrite it or skip checks) | Fails the build if the lock is missing or out of sync |
 |---|---|---|
 | npm | `npm install` (updates the lock when `package.json` disagrees) | `npm ci` |
 | Yarn 2+ | `yarn install` outside CI | `yarn install --immutable`, the default when Yarn detects CI (`enableImmutableInstalls`) |
 | Yarn 1 | `yarn install` | `yarn install --frozen-lockfile` |
 | pnpm | `pnpm install` outside CI | `pnpm install --frozen-lockfile`, the default in CI when a lockfile exists |
-| Python | `pip install -r requirements.txt` (unpinned) | pinned `==` + hashes, `pip install --require-hashes`, or `uv sync --frozen` / `poetry install` with committed lock |
-| Go | - | `go mod verify` + committed `go.sum` |
-| Rust | - | committed `Cargo.lock` (binaries), `cargo --locked` |
-| Java | version ranges in `pom.xml` | fixed versions + `dependency-lock` / `mvn -o` with verified checksums |
+| pip | `pip install -r requirements.txt` without hashes | `pip install --require-hashes -r requirements.txt` (every entry pinned `==` with `--hash`) |
+| uv | `uv sync`, or `uv sync --frozen` (uses the lock without checking it is current) | `uv sync --locked` |
+| Poetry | `poetry install` | `poetry check --lock` before install |
+| Go | `-mod=mod` (updates `go.mod`) | the default `-mod=readonly` since Go 1.16, with `go.sum` committed; `go mod verify` checks the module cache against it |
+| Rust | `cargo build` (may update `Cargo.lock`) | `cargo build --locked` |
+| Gradle | dynamic versions with no lock | dependency locking enabled (`--write-locks`); resolution fails if versions differ from the lock |
+| Maven | version ranges in `pom.xml` | no native lockfile: pin exact versions and forbid ranges |
 
 **Check for:** a lockfile missing or gitignored; a production build step that can rewrite it
-(`npm install` in CI, or `enableImmutableInstalls: false` / `--no-frozen-lockfile` overriding the
-CI default); floating ranges (`^`, `~`, `*`, `latest`) with no enforced lockfile behind them; `requirements.txt` without `==`; a lockfile whose `resolved` URLs point at
+(`npm install` in CI, `uv sync --frozen` where `--locked` was meant, or `enableImmutableInstalls: false`
+/ `--no-frozen-lockfile` overriding the CI default); floating ranges (`^`, `~`, `*`, `latest`) with no enforced lockfile behind them; `requirements.txt` without `==`; a lockfile whose `resolved` URLs point at
 a registry other than the expected one; and vulnerable-but-unused dependencies (they still count
 if the code path is reachable - check before rating severity).
 

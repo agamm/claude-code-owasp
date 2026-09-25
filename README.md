@@ -37,7 +37,7 @@ Location: `.claude/skills/owasp-security/`
 - **Finding-triage rubric** - confirm attacker-controlled input, sink reachability, and blast radius before reporting, to cut false positives
 - **Reporting format** - fixed finding structure (location, input-to-sink path, impact, fix, confidence) with severity rated by exploitability
 - **OWASP Top 10:2025** quick reference table
-- **OWASP Top 10 for LLM Applications (2025)** - LLM01-LLM10 risks for chatbots, RAG, and tool-calling apps
+- **OWASP Top 10 for LLM Applications (2026)** - LLM01-LLM10 risks for chatbots, RAG, and tool-calling apps
 - **OWASP Agentic AI Security (2026)** - ASI01-ASI10 risks for AI agent systems
 - **ASVS 5.0** key requirements with real 5.0 requirement IDs and levels
 
@@ -45,17 +45,19 @@ Location: `.claude/skills/owasp-security/`
 - **`review-checklist.md`** - coverage checklist for every Top 10 category (including SSRF, file handling, JWTs, CORS, and CSRF) plus LLM and agent features
 - **`languages.md`** - language-specific security quirks for 20+ languages with unsafe/safe examples
 - **`config-and-supply-chain.md`** - A02 and A03 where they actually live: Dockerfiles, Kubernetes, Terraform, framework config, security headers, lockfiles, dependency confusion, install scripts, and CI/CD workflows
-- **`owasp-report.md`** - deep-dive on the Top 10:2025, ASVS 5.0, the LLM Top 10 (2025), and the Agentic list (2026), with per-item attack vectors and mitigations
+- **`owasp-report.md`** - deep-dive on the Top 10:2025, ASVS 5.0, the LLM Top 10 (2026), and the Agentic list (2026), with per-item attack vectors and mitigations
 
 ### Accuracy
 
 Category names, ASVS chapter structure, and ASVS requirement IDs and levels are verified
 directly against [owasp.org/Top10/2025](https://owasp.org/Top10/2025/),
 [github.com/OWASP/ASVS](https://github.com/OWASP/ASVS/tree/master/5.0/en), and
-[genai.owasp.org](https://genai.owasp.org/llm-top-10/) rather than paraphrased.
+the [LLM Top 10 2026 PDF](https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/) rather than paraphrased.
+The Agentic Top 10 names are checked against that PDF's framework-mapping appendix.
 
 This matters more than it sounds: ASVS 5.0 renumbered every chapter, so 4.0 requirement IDs
-do not carry over, and three Top 10 categories were renamed in 2025. Much of the OWASP
+do not carry over, three Top 10 categories were renamed in 2025, and the LLM Top 10 2026
+reordered eight of its ten entries. Much of the OWASP
 material circulating online still cites the old IDs and names.
 
 ## Usage
@@ -83,7 +85,7 @@ Once installed, Claude Code automatically activates this skill when you:
 |----------|---------|-------|
 | OWASP Top 10 | 2025 | Web application vulnerabilities |
 | OWASP ASVS | 5.0.0 | Security verification requirements |
-| OWASP Top 10 for LLM Apps | 2025 | LLM/RAG/tool-calling app risks |
+| OWASP Top 10 for LLM Apps | 2026 | LLM/RAG/tool-calling app risks |
 | OWASP Agentic | 2026 | AI agent security risks |
 
 ## Language Coverage
@@ -136,7 +138,7 @@ keep `SKILL.md` to what Claude would otherwise get wrong, and put depth in `refe
 
 - [OWASP Top 10:2025](https://owasp.org/Top10/2025/)
 - [OWASP ASVS 5.0](https://github.com/OWASP/ASVS/tree/master/5.0/en) — chapter files, one per V-number
-- [OWASP Top 10 for LLM Applications 2025](https://genai.owasp.org/llm-top-10/)
+- [OWASP Top 10 for LLM Applications 2026](https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/)
 - [OWASP GenAI Security Project](https://genai.owasp.org/) — home of the LLM and Agentic lists
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)
 

@@ -1,6 +1,6 @@
 ---
 name: owasp-security
-description: Reviews code for security vulnerabilities and guides secure implementation using OWASP Top 10:2025, ASVS 5.0, the OWASP Top 10 for LLM Applications (2025), and the OWASP Top 10 for Agentic Applications (2026). Use when reviewing code or a diff for security issues, implementing authentication, authorization, sessions, or cryptography, handling untrusted input, files, or URLs, hardening config, dependencies, or CI, or building LLM and AI agent features.
+description: Reviews code for security vulnerabilities and guides secure implementation using OWASP Top 10:2025, ASVS 5.0, the OWASP Top 10 for LLM Applications (2026), and the OWASP Top 10 for Agentic Applications (2026). Use when reviewing code or a diff for security issues, implementing authentication, authorization, sessions, or cryptography, handling untrusted input, files, or URLs, hardening config, dependencies, or CI, or building LLM and AI agent features.
 when_to_use: Trigger phrases include "security review", "security check", "anything exploitable", "audit this", "is this secure", "is this safe to ship", "check for vulnerabilities", "find security bugs", "threat model", "OWASP", "ASVS", "CWE", "prompt injection", "MCP server security", "secrets in code", "supply chain", and "harden this Dockerfile or workflow".
 ---
 
@@ -114,22 +114,23 @@ numbers; much OWASP material online still cites the 2021 list.
 | A09 | Security Logging and Alerting Failures | Log security events, structured format, alerting |
 | A10 | Mishandling of Exceptional Conditions | Fail-closed, hide internals, log with context |
 
-## OWASP Top 10 for LLM Applications (2025)
+## OWASP Top 10 for LLM Applications (2026)
 
-For applications that call LLMs (chatbots, RAG, copilots, agents):
+For applications that call LLMs (chatbots, RAG, copilots, agents). The 2026 edition renumbered
+the list; translate 2025 IDs with the table in `owasp-report.md` and cite 2026 IDs only.
 
 | # | Risk | Key Mitigation |
 |---|------|----------------|
-| LLM01 | Prompt Injection | No complete fix exists. Fence untrusted content, keep privileges out of the model's reach, filter outputs |
+| LLM01 | Prompt Injection | No complete fix exists. Fence untrusted content (including images, audio, tool output), keep privileges out of the model's reach, filter outputs |
 | LLM02 | Sensitive Information Disclosure | Sanitize training/RAG data, strip PII from context, restrict what the model can retrieve per user |
-| LLM03 | Supply Chain | Verify model provenance and signatures, vet third-party model hubs, lock model + adapter versions |
-| LLM04 | Data and Model Poisoning | Validate training/fine-tuning sources, anomaly-detect on data ingestion, hold-out integrity tests |
-| LLM05 | Improper Output Handling | Treat all LLM output as untrusted input: validate, escape, or sandbox before any sink (SQL, shell, HTML, code, tool calls) |
-| LLM06 | Excessive Agency | Minimize tools and permissions, require human approval for destructive actions, scope credentials per task |
-| LLM07 | System Prompt Leakage | Never put secrets, keys, or auth logic in the system prompt; assume the prompt is extractable |
-| LLM08 | Vector and Embedding Weaknesses | Tenant-isolate vector stores, access-control on retrieval, sign or hash chunks against indirect prompt injection |
-| LLM09 | Misinformation | Cite sources, surface confidence, require grounding for high-stakes answers, disclose AI provenance |
-| LLM10 | Unbounded Consumption | Rate-limit per user/key, cap tokens and tool calls per request, monitor cost, set hard timeouts |
+| LLM03 | Excessive Agency | Minimize tools and permissions, require human approval for destructive actions, scope credentials per task |
+| LLM04 | Supply Chain | Verify model provenance and signatures, vet third-party model hubs, lock model + adapter versions |
+| LLM05 | Data and Model Poisoning | Validate training/fine-tuning sources, anomaly-detect on data ingestion, hold-out integrity tests |
+| LLM06 | Unbounded Consumption | Rate-limit per user/key, cap tokens and tool calls per request, monitor cost, set hard timeouts |
+| LLM07 | Misinformation | Cite sources, surface confidence, require grounding for high-stakes answers, disclose AI provenance |
+| LLM08 | Hidden Context Exposure | Assume the system prompt, tool schemas, and other hidden context are extractable: no secrets there, and no authorization or policy that relies on them staying hidden |
+| LLM09 | Vector and Embedding Weaknesses | Tenant-isolate vector stores, access-control on retrieval, sign or hash chunks against indirect prompt injection |
+| LLM10 | Improper Output Handling | Treat all LLM output, including generated code, as untrusted input: validate, escape, or sandbox before any sink (SQL, shell, HTML, code, tool calls) |
 
 ## OWASP Top 10 for Agentic Applications (2026)
 
@@ -137,13 +138,13 @@ For AI agent systems that plan, call tools, or keep memory:
 
 | Risk | Description | Mitigation |
 |------|-------------|------------|
-| ASI01: Agent Goal Hijacking | Prompt injection alters agent objectives | Treat tool and retrieved content as data, goal boundaries, behavioral monitoring |
-| ASI02: Tool Misuse | Tools used in unintended ways | Least privilege, fine-grained permissions, validate I/O |
+| ASI01: Agent Goal Hijack | Prompt injection alters agent objectives | Treat tool and retrieved content as data, goal boundaries, behavioral monitoring |
+| ASI02: Tool Misuse & Exploitation | Tools used in unintended ways | Least privilege, fine-grained permissions, validate I/O |
 | ASI03: Identity & Privilege Abuse | Delegated trust, inherited credentials, role chain exploits | Short-lived scoped tokens, identity verification |
 | ASI04: Agentic Supply Chain Vulnerabilities | Compromised plugins/MCP servers | Verify signatures, sandbox, allowlist plugins |
 | ASI05: Unexpected Code Execution | Unsafe code generation/execution | Sandbox execution, static analysis, human approval |
 | ASI06: Memory & Context Poisoning | Corrupted RAG/context data | Validate stored content, segment by trust level |
-| ASI07: Insecure Inter-Agent Comms | Spoofing/intercepting agent-to-agent messages | Authenticate, encrypt, verify message integrity |
+| ASI07: Insecure Inter-Agent Communication | Spoofing/intercepting agent-to-agent messages | Authenticate, encrypt, verify message integrity |
 | ASI08: Cascading Failures | Errors propagate across systems | Circuit breakers, graceful degradation, isolation |
 | ASI09: Human-Agent Trust Exploitation | Over-trust in agents leveraged to manipulate users | Label AI content, user education, verification steps |
 | ASI10: Rogue Agents | Compromised agents acting maliciously | Behavior monitoring, kill switches, anomaly detection |

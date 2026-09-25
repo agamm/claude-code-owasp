@@ -16,7 +16,7 @@ touch. A checked-off gap is a lead to trace, not a finding: run it through the t
 - Serialization & Data Integrity (A08)
 - Data Protection (A04)
 - Error Handling & Logging (A09/A10)
-- LLM and Agent Features (LLM Top 10 2025, Agentic 2026)
+- LLM and Agent Features (LLM Top 10 2026, Agentic 2026)
 
 ## Input Handling (A05)
 - [ ] All user input validated server-side
@@ -109,18 +109,18 @@ touch. A checked-off gap is a lead to trace, not a finding: run it through the t
 - [ ] Logs exclude credentials, tokens, and PII; user input encoded to prevent log injection
 - [ ] Empty `catch` blocks and swallowed errors reviewed: silent failure hides attacks
 
-## LLM and Agent Features (LLM Top 10 2025, Agentic 2026)
+## LLM and Agent Features (LLM Top 10 2026, Agentic 2026)
 - [ ] Untrusted text (user input, web pages, email, RAG chunks, tool output) can't steer a model
       that holds privileged tools (LLM01, ASI01)
-- [ ] Model output validated or escaped before any SQL, shell, HTML, code, or tool argument (LLM05)
+- [ ] Model output validated or escaped before any SQL, shell, HTML, code, or tool argument (LLM10)
 - [ ] Tools minimal and scoped; no general shell or HTTP tool unless required; destructive
-      actions need human approval (LLM06, ASI02)
+      actions need human approval (LLM03, ASI02)
 - [ ] Agent credentials short-lived and scoped to the task, never an admin or the user's full session (ASI03)
-- [ ] Retrieval enforces the caller's tenant and permissions at query time (LLM02, LLM08)
-- [ ] No secrets or authorization logic in the system prompt (LLM07)
-- [ ] MCP servers, plugins, and models pinned and from trusted sources (LLM03, ASI04)
+- [ ] Retrieval enforces the caller's tenant and permissions at query time (LLM02, LLM09)
+- [ ] No secrets or authorization logic in the system prompt, tool schemas, or other hidden context (LLM08)
+- [ ] MCP servers, plugins, and models pinned and from trusted sources (LLM04, ASI04)
 - [ ] Generated code runs in a sandbox (ASI05)
 - [ ] Writes to agent memory or the vector store validated, so untrusted content can't persist
       instructions (ASI06)
-- [ ] Per-user caps on requests, tokens, tool calls, and cost, plus hard timeouts (LLM10)
+- [ ] Per-user caps on requests, tokens, tool calls, and cost, plus hard timeouts (LLM06)
 - [ ] Tool calls logged, with a way to stop a running agent (ASI08, ASI10)

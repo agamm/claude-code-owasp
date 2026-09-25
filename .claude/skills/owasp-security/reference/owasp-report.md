@@ -8,7 +8,7 @@ A comprehensive guide to the latest OWASP security standards for developers buil
 
 1. [OWASP Top 10:2025](#owasp-top-102025)
 2. [OWASP ASVS 5.0.0](#owasp-asvs-500)
-3. [OWASP Top 10 for LLM Applications 2025](#owasp-top-10-for-llm-applications-2025)
+3. [OWASP Top 10 for LLM Applications 2026](#owasp-top-10-for-llm-applications-2026)
 4. [OWASP Top 10 for Agentic Applications 2026](#owasp-top-10-for-agentic-applications-2026)
 5. [Sources and References](#sources-and-references)
 
@@ -594,26 +594,41 @@ Requirement text is abridged; the bracketed number is the ASVS level at which it
 
 ---
 
-## OWASP Top 10 for LLM Applications 2025
+## OWASP Top 10 for LLM Applications 2026
 
 Applies to any application that calls a model — chatbots, RAG pipelines, copilots, summarizers,
 and function-calling tools. The Agentic list that follows builds on this one; if a system has
 autonomy, tools, or memory, review it against **both**.
 
+The 2026 edition reordered the list. Much material still cites 2025 IDs; translate them:
+
+| 2025 ID | Risk | 2026 ID |
+|---|---|---|
+| LLM03 | Supply Chain | LLM04 |
+| LLM04 | Data and Model Poisoning | LLM05 |
+| LLM05 | Improper Output Handling | LLM10 |
+| LLM06 | Excessive Agency | LLM03 |
+| LLM07 | System Prompt Leakage, now Hidden Context Exposure | LLM08 |
+| LLM08 | Vector and Embedding Weaknesses | LLM09 |
+| LLM09 | Misinformation | LLM07 |
+| LLM10 | Unbounded Consumption | LLM06 |
+
+LLM01 and LLM02 are unchanged.
+
 ### Summary Table
 
 | # | Risk | Core failure |
 |---|------|--------------|
-| LLM01 | Prompt Injection | Instructions and data share one untrusted channel |
+| LLM01 | Prompt Injection | Instructions and data share one untrusted channel, including images, audio, and tool output |
 | LLM02 | Sensitive Information Disclosure | Model reveals data it should never have been able to reach |
-| LLM03 | Supply Chain | Model, adapter, or dataset provenance unverified |
-| LLM04 | Data and Model Poisoning | Training or fine-tuning corpus manipulated |
-| LLM05 | Improper Output Handling | Model output trusted by a downstream sink |
-| LLM06 | Excessive Agency | Model can do more than the task requires |
-| LLM07 | System Prompt Leakage | Secrets or authorization logic placed in the prompt |
-| LLM08 | Vector and Embedding Weaknesses | Retrieval crosses tenant or trust boundaries |
-| LLM09 | Misinformation | Ungrounded output consumed as fact |
-| LLM10 | Unbounded Consumption | No ceiling on tokens, calls, or cost |
+| LLM03 | Excessive Agency | Model can do more than the task requires |
+| LLM04 | Supply Chain | Model, adapter, or dataset provenance unverified |
+| LLM05 | Data and Model Poisoning | Training or fine-tuning corpus manipulated |
+| LLM06 | Unbounded Consumption | No ceiling on tokens, calls, or cost |
+| LLM07 | Misinformation | Ungrounded output consumed as fact |
+| LLM08 | Hidden Context Exposure | Secrets or security logic placed in the system prompt or other hidden context |
+| LLM09 | Vector and Embedding Weaknesses | Retrieval crosses tenant or trust boundaries |
+| LLM10 | Improper Output Handling | Model output, including generated code, trusted by a downstream sink |
 
 ---
 
@@ -682,75 +697,7 @@ chunks = vector_store.search(query, k=5, filter={"tenant_id": user.tenant_id,
 
 ---
 
-### LLM03: Supply Chain
-
-**Description:** Compromise arrives through model weights, adapters, datasets, or the serving
-stack rather than through application code.
-
-**Attack Vectors:**
-- Malicious or typosquatted models from public hubs
-- Weights in formats that execute code on load (e.g. pickle-backed checkpoints)
-- Tampered LoRA/adapter layers applied over a trusted base
-- Unpinned model versions that silently change behavior
-
-**Mitigation Strategies:**
-1. Pin model, adapter, and embedding-model versions; treat a version bump as a code change
-2. Verify signatures and checksums; prefer safe serialization formats over pickle
-3. Vet the hub and publisher the way you would an npm or PyPI dependency
-4. Re-run evaluations after any model change — behavior drift is a security event
-
----
-
-### LLM04: Data and Model Poisoning
-
-**Description:** An attacker influences training, fine-tuning, or embedding data to implant
-backdoors or bias behavior.
-
-**Attack Vectors:**
-- Poisoned public corpora or scraped content
-- User feedback loops (thumbs-up/down, RLHF) manipulated at scale
-- Malicious documents added to a continuously-updated RAG index
-- Backdoor triggers that activate only on a specific phrase
-
-**Mitigation Strategies:**
-1. Track provenance for every training and indexing source
-2. Anomaly-detect on ingestion; review what enters a continuously-updated index
-3. Hold out integrity tests and known-trigger probes; re-run them each retrain
-4. Do not auto-promote user feedback into training data without review
-
----
-
-### LLM05: Improper Output Handling
-
-**Description:** Model output is passed to a sink that executes, renders, or trusts it. This is
-the LLM-era instance of a classic injection bug — the model is just the new untrusted source.
-
-**Attack Vectors:**
-- Generated SQL executed directly
-- Generated HTML/Markdown rendered without sanitization (XSS)
-- Generated shell commands or code executed
-- Generated URLs fetched server-side (SSRF)
-
-**Prevention:**
-```python
-# UNSAFE - model output reaches an executing sink
-db.execute(llm.complete("Write SQL for: " + request))
-
-# SAFE - constrain to a schema, then build the query from allow-listed parts
-spec = llm.complete_json(request, schema=QuerySpec)
-query, params = build_query(spec)   # validated columns, operators, limits
-db.execute(query, params)
-```
-
-**Mitigation Strategies:**
-1. Apply the same validation to model output as to a raw HTTP request body
-2. Prefer structured output plus a builder over free-form text at any sink
-3. Sanitize before rendering; sandbox before executing; allowlist before fetching
-4. Keep the model out of the trusted-code path entirely where feasible
-
----
-
-### LLM06: Excessive Agency
+### LLM03: Excessive Agency
 
 **Description:** The system grants more functionality, permission, or autonomy than the task
 requires, so a successful injection or a model error causes real damage.
@@ -782,63 +729,45 @@ agent = Agent(
 
 ---
 
-### LLM07: System Prompt Leakage
+### LLM04: Supply Chain
 
-**Description:** The system prompt is extractable. The vulnerability is not the leak itself but
-what was placed in the prompt on the assumption it would stay hidden.
+**Description:** Compromise arrives through model weights, adapters, datasets, or the serving
+stack rather than through application code.
 
 **Attack Vectors:**
-- Direct extraction requests and paraphrase attacks
-- Inference from behavior across many queries
-- Error messages or debug output echoing the prompt
+- Malicious or typosquatted models from public hubs
+- Weights in formats that execute code on load (e.g. pickle-backed checkpoints)
+- Tampered LoRA/adapter layers applied over a trusted base
+- Unpinned model versions that silently change behavior
 
 **Mitigation Strategies:**
-1. Never put API keys, credentials, or connection strings in a prompt
-2. Never implement authorization in the prompt — enforce it in code, server-side
-3. Treat the system prompt as public; if leaking it would be a breach, redesign
-4. Keep filtering as a speed bump, not as the control
+1. Pin model, adapter, and embedding-model versions; treat a version bump as a code change
+2. Verify signatures and checksums; prefer safe serialization formats over pickle
+3. Vet the hub and publisher the way you would an npm or PyPI dependency
+4. Re-run evaluations after any model change — behavior drift is a security event
 
 ---
 
-### LLM08: Vector and Embedding Weaknesses
+### LLM05: Data and Model Poisoning
 
-**Description:** The retrieval layer becomes the attack surface — through cross-tenant leakage,
-poisoned chunks, or inversion of the embeddings themselves.
+**Description:** An attacker influences training, fine-tuning, or embedding data to implant
+backdoors or bias behavior.
 
 **Attack Vectors:**
-- One shared index across tenants with filtering applied only in application code
-- Documents crafted to rank highly for sensitive queries and carry injection payloads
-- Embedding inversion recovering source text from stored vectors
-- Retrieved content flowing straight into the instruction channel (see LLM01)
+- Poisoned public corpora or scraped content
+- User feedback loops (thumbs-up/down, RLHF) manipulated at scale
+- Malicious documents added to a continuously-updated RAG index
+- Backdoor triggers that activate only on a specific phrase
 
 **Mitigation Strategies:**
-1. Isolate tenants at the index or namespace level, not just by a query filter
-2. Attach ACLs to chunks at index time and enforce them at query time
-3. Track chunk provenance; quarantine or label content from untrusted origins
-4. Treat the vector store as sensitive at the same classification as its source documents
+1. Track provenance for every training and indexing source
+2. Anomaly-detect on ingestion; review what enters a continuously-updated index
+3. Hold out integrity tests and known-trigger probes; re-run them each retrain
+4. Do not auto-promote user feedback into training data without review
 
 ---
 
-### LLM09: Misinformation
-
-**Description:** Confident, ungrounded output is consumed as fact. The security impact appears
-when it reaches code, configuration, or a decision with consequences.
-
-**Attack Vectors:**
-- Hallucinated package names enabling **slopsquatting** — an attacker registers the invented
-  package and waits for it to be installed
-- Fabricated APIs, config flags, or security advice adopted verbatim
-- Over-reliance on generated code in security-critical paths
-
-**Mitigation Strategies:**
-1. Verify that generated dependencies exist and are the intended publisher before install
-2. Require grounding and citations for high-stakes answers
-3. Surface uncertainty rather than smoothing it away
-4. Keep a human reviewer on security-relevant generated code
-
----
-
-### LLM10: Unbounded Consumption
+### LLM06: Unbounded Consumption
 
 **Description:** No ceiling on tokens, tool calls, recursion, or spend. The result is denial of
 service or denial of wallet.
@@ -869,7 +798,102 @@ def chat(msg: str, user: User):
 1. Enforce per-identity rate limits and daily token or cost budgets
 2. Cap max tokens, tool-call depth, and total steps per request
 3. Set hard timeouts on completions and tool calls
-4. Alert on cost anomalies — spend is a security signal
+4. Alert on cost anomalies: spend is a security signal
+
+---
+
+### LLM07: Misinformation
+
+**Description:** Confident, ungrounded output is consumed as fact. The security impact appears
+when it reaches code, configuration, or a decision with consequences.
+
+**Attack Vectors:**
+- Hallucinated package names enabling **slopsquatting**: an attacker registers the invented
+  package and waits for it to be installed
+- Fabricated APIs, config flags, or security advice adopted verbatim
+- Over-reliance on generated code in security-critical paths
+
+**Mitigation Strategies:**
+1. Verify that generated dependencies exist and are the intended publisher before install
+2. Require grounding and citations for high-stakes answers
+3. Surface uncertainty rather than smoothing it away
+4. Keep a human reviewer on security-relevant generated code
+
+---
+
+### LLM08: Hidden Context Exposure
+
+**Description:** Formerly System Prompt Leakage, now broader. Hidden context is everything the
+application puts in the model's context that users are not meant to see: the system prompt,
+developer instructions, retrieved policy text, and tool and function schemas. Assume all of it
+is discoverable. The vulnerability is not the leak itself but what was placed there, or relied
+on, on the assumption it would stay hidden.
+
+**Attack Vectors:**
+- Direct extraction requests and paraphrase attacks
+- Inference or reconstruction from behavior across many queries
+- Probing for tool lists and parameter schemas to pick targets for later injection
+- Extracting refusal rules or output formats to craft inputs that slip past them
+
+**Severity tracks what is in the hidden context:** informational if nothing there matters;
+medium for internal rules or workflow logic that helps an attacker; high for embedded
+credentials, or when authorization or content policy relies on the context staying secret;
+critical when disclosure chains into code execution, broad exfiltration, or privilege escalation.
+
+**Mitigation Strategies:**
+1. Never put API keys, credentials, tokens, or connection strings in hidden context
+2. Enforce authorization and privilege separation in code, outside the model, never in the prompt
+3. Enforce critical behavior (content filtering, output validation) with deterministic controls outside the model
+4. Treat the system prompt as public; if leaking it would be a breach, redesign
+
+---
+
+### LLM09: Vector and Embedding Weaknesses
+
+**Description:** The retrieval layer becomes the attack surface — through cross-tenant leakage,
+poisoned chunks, or inversion of the embeddings themselves.
+
+**Attack Vectors:**
+- One shared index across tenants with filtering applied only in application code
+- Documents crafted to rank highly for sensitive queries and carry injection payloads
+- Embedding inversion recovering source text from stored vectors
+- Retrieved content flowing straight into the instruction channel (see LLM01)
+
+**Mitigation Strategies:**
+1. Isolate tenants at the index or namespace level, not just by a query filter
+2. Attach ACLs to chunks at index time and enforce them at query time
+3. Track chunk provenance; quarantine or label content from untrusted origins
+4. Treat the vector store as sensitive at the same classification as its source documents
+
+---
+
+### LLM10: Improper Output Handling
+
+**Description:** Model output is passed to a sink that executes, renders, or trusts it. This is
+the LLM-era instance of a classic injection bug. The model is just the new untrusted source.
+
+**Attack Vectors:**
+- Generated SQL executed directly
+- Generated HTML/Markdown rendered without sanitization (XSS)
+- Generated shell commands or code executed
+- Generated URLs fetched server-side (SSRF)
+
+**Prevention:**
+```python
+# UNSAFE - model output reaches an executing sink
+db.execute(llm.complete("Write SQL for: " + request))
+
+# SAFE - constrain to a schema, then build the query from allow-listed parts
+spec = llm.complete_json(request, schema=QuerySpec)
+query, params = build_query(spec)   # validated columns, operators, limits
+db.execute(query, params)
+```
+
+**Mitigation Strategies:**
+1. Apply the same validation to model output as to a raw HTTP request body
+2. Prefer structured output plus a builder over free-form text at any sink
+3. Sanitize before rendering; sandbox before executing; allowlist before fetching
+4. Keep the model out of the trusted-code path entirely where feasible
 
 ---
 
@@ -883,8 +907,8 @@ state rather than just generating text. It extends the LLM Top 10 above rather t
 
 | ID | Risk | Description |
 |----|------|-------------|
-| ASI01 | Agent Goal Hijacking | Prompt injection alters agent's core objectives |
-| ASI02 | Tool Misuse | Legitimate tools used in unintended/unsafe ways |
+| ASI01 | Agent Goal Hijack | Prompt injection alters agent's core objectives |
+| ASI02 | Tool Misuse & Exploitation | Legitimate tools used in unintended/unsafe ways |
 | ASI03 | Identity & Privilege Abuse | Credential escalation across agent interactions |
 | ASI04 | Agentic Supply Chain Vulnerabilities | Compromised plugins, MCP servers, or dependencies |
 | ASI05 | Unexpected Code Execution | Unsafe code generation or execution by agents |
@@ -896,7 +920,7 @@ state rather than just generating text. It extends the LLM Top 10 above rather t
 
 ---
 
-### ASI01: Agent Goal Hijacking
+### ASI01: Agent Goal Hijack
 
 **Description:** Attackers use prompt injection to alter an agent's intended goals, making it serve malicious purposes while appearing to function normally.
 
@@ -915,7 +939,7 @@ state rather than just generating text. It extends the LLM Top 10 above rather t
 
 ---
 
-### ASI02: Tool Misuse
+### ASI02: Tool Misuse & Exploitation
 
 **Description:** Agents with access to tools (APIs, databases, file systems) may use them in unintended ways due to malicious instructions or flawed reasoning.
 
@@ -1091,7 +1115,7 @@ state rather than just generating text. It extends the LLM Top 10 above rather t
 ### Official OWASP Resources
 - [OWASP Top 10:2025](https://owasp.org/Top10/2025/) — primary source for category names
 - [OWASP ASVS 5.0](https://github.com/OWASP/ASVS/tree/master/5.0/en) — chapter files, one per V-number
-- [OWASP Top 10 for LLM Applications 2025](https://genai.owasp.org/llm-top-10/)
+- [OWASP Top 10 for LLM Applications 2026](https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/)
 - [OWASP GenAI Security Project](https://genai.owasp.org/) — home of the LLM and Agentic lists
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)
 
