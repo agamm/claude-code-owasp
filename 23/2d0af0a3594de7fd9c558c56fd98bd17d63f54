@@ -1,0 +1,21 @@
+.claude/skills/owasp-security/reference/languages.md
+  s_32653578869b0f::t_a2b47c9860e017 45-46
+.claude/skills/owasp-security/reference/config-and-supply-chain.md
+  s_32653578869b0f::t_a2b47c9860e017 219-222,224,226-229,235-237
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "232d0af0a3594de7fd9c558c56fd98bd17d63f54",
+  "prompts": {},
+  "sessions": {
+    "s_32653578869b0f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "234bcf90-d232-4d13-a258-024e955dde58",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Agam More <Agam@agam.me>"
+    }
+  }
+}
