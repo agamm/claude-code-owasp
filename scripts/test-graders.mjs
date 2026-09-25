@@ -55,6 +55,14 @@ const cases = {
       "LLM06:2025 Excessive Agency",
     ],
   },
+  "evals/conditional-risk-severity/graders/mentions-symlink-risk.md": {
+    pass: ["[MEDIUM] Symlink race lets a user read another file", "a TOCTOU window between the check and gzip"],
+    fail: ["No exploitable issues found. Path traversal is blocked."],
+  },
+  "evals/conditional-risk-severity/graders/no-high-or-critical.md": {
+    pass: ["[MEDIUM] Symlink race (needs verification)", "Severity: Low"],
+    fail: ["[HIGH] Symlink-based TOCTOU", "**[Critical] Race**"],
+  },
 };
 
 let failures = 0;
