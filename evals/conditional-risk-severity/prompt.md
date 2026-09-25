@@ -1,6 +1,6 @@
 ---
-description: Code that pattern-matches as risky but is safe. The review should not invent High or Critical findings.
-tags: [review, triage, false-positive]
+description: A real but conditional risk (gzip -f follows symlinks; exploiting it needs a way to plant a symlink). The review should mention it and rate it below High.
+tags: [review, triage, severity]
 model: sonnet
 max_turns: 15
 allowed_tools: [Read, Glob, Grep, Skill]
@@ -31,6 +31,6 @@ def compress(name):
     src = (UPLOAD_ROOT / str(g.user.id) / name).resolve()
     if not src.is_relative_to(UPLOAD_ROOT / str(g.user.id)) or not src.is_file():
         abort(404)
-    subprocess.run(["gzip", "-k", f"-{level}", "--", str(src)], check=True, timeout=30)
+    subprocess.run(["gzip", "-kf", f"-{level}", "--", str(src)], check=True, timeout=30)
     return send_file(str(src) + ".gz")
 ```

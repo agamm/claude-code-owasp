@@ -77,13 +77,16 @@ say that instead of asserting either way.
 One block per finding, highest severity first:
 
 ```
-[SEVERITY] Title (CWE-###, OWASP A##:2025)
+[SEVERITY] Title (CWE-###, OWASP A##:2025, LLM## Risk Name, ASI## Risk Name)
 Location:   path/to/file.ext:LINE
 Path:       <entry point> -> <intermediate hops> -> <sink>
 Impact:     who can trigger it, what they get, which trust boundary it crosses
 Fix:        the concrete change, with a code snippet when it isn't obvious
 Confidence: Confirmed | Likely | Needs verification (say what you couldn't see)
 ```
+
+Write every LLM and ASI ID with its risk name, e.g. "LLM03 Excessive Agency". A bare LLM ID is
+ambiguous: the 2025 and 2026 editions use the same numbers for different risks.
 
 | Severity | Meaning |
 |---|---|

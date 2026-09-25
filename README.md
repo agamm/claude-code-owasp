@@ -4,12 +4,24 @@ A Claude Code skill providing the latest OWASP security best practices (2025-202
 
 ## Quick Install
 
-Install as a Claude Code plugin, which also keeps it updated:
+Install as a Claude Code plugin:
 
 ```
 /plugin marketplace add agamm/claude-code-owasp
 /plugin install owasp-security@agamm
 ```
+
+### Updating
+
+Third-party marketplaces don't auto-update by default. Either update by hand:
+
+```bash
+claude plugin marketplace update agamm
+claude plugin update owasp-security@agamm
+```
+
+or turn on auto-update once: run `/plugin`, open the **Marketplaces** tab, select `agamm`, and
+choose **Enable auto-update**. Updates apply to the next session, or run `/reload-plugins`.
 
 ### Install as a plain skill
 
@@ -104,12 +116,14 @@ Each language section includes common vulnerabilities, unsafe/safe code patterns
 ## Evals
 
 `evals/` holds test cases for [`claude plugin eval`](https://code.claude.com/docs/en/plugin-evals):
-a real finding next to a safe look-alike, safe code that should not draw High findings, an LLM agent
-that runs model output in a shell, and an unrelated request that should not load the skill. Each case
-runs with and without the skill, so the score shows what the skill adds.
+a real finding next to a safe look-alike, safe code that should not draw High findings, a real but
+conditional risk that should be rated below High, an LLM agent that runs model output in a shell, and
+an unrelated request that should not load the skill. Each case runs with and without the skill, so the
+score shows what the skill adds. Evals target Sonnet and Opus; each case pins `model: sonnet`.
 
 ```bash
-claude plugin eval . --model sonnet
+claude plugin eval .               # Sonnet, the pinned default
+claude plugin eval . --model opus
 ```
 
 Runs are real model calls billed to your account. Run the suite before and after any change to
