@@ -1,6 +1,7 @@
 ---
 description: A real but conditional risk (gzip -f follows symlinks; exploiting it needs a way to plant a symlink). The review should mention it and rate it below High.
 tags: [review, triage, severity]
+model: sonnet
 max_turns: 15
 allowed_tools: [Read, Glob, Grep, Skill]
 ---

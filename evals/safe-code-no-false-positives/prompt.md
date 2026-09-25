@@ -1,6 +1,7 @@
 ---
 description: Code that pattern-matches as risky but is safe. The review should not invent High or Critical findings.
 tags: [review, triage, false-positive]
+model: sonnet
 max_turns: 15
 allowed_tools: [Read, Glob, Grep, Skill]
 ---

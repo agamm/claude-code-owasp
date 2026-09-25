@@ -1,6 +1,7 @@
 ---
 description: Agent code that executes model output. The review should name the OWASP LLM or Agentic risk IDs.
 tags: [review, llm, agentic]
+model: sonnet
 max_turns: 15
 allowed_tools: [Read, Glob, Grep, Skill]
 ---

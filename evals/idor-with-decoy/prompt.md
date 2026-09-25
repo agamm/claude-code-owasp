@@ -1,6 +1,7 @@
 ---
 description: Finds a real IDOR and does not report a look-alike SQL pattern that is safe.
 tags: [review, triage]
+model: sonnet
 max_turns: 15
 allowed_tools: [Read, Glob, Grep, Skill]
 ---

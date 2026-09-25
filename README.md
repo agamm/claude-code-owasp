@@ -116,12 +116,14 @@ Each language section includes common vulnerabilities, unsafe/safe code patterns
 ## Evals
 
 `evals/` holds test cases for [`claude plugin eval`](https://code.claude.com/docs/en/plugin-evals):
-a real finding next to a safe look-alike, safe code that should not draw High findings, an LLM agent
-that runs model output in a shell, and an unrelated request that should not load the skill. Each case
-runs with and without the skill, so the score shows what the skill adds.
+a real finding next to a safe look-alike, safe code that should not draw High findings, a real but
+conditional risk that should be rated below High, an LLM agent that runs model output in a shell, and
+an unrelated request that should not load the skill. Each case runs with and without the skill, so the
+score shows what the skill adds. Evals target Sonnet and Opus; each case pins `model: sonnet`.
 
 ```bash
-claude plugin eval . --model sonnet
+claude plugin eval .               # Sonnet, the pinned default
+claude plugin eval . --model opus
 ```
 
 Runs are real model calls billed to your account. Run the suite before and after any change to
