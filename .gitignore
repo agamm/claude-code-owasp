@@ -12,3 +12,6 @@ Thumbs.db
 
 # Agent tooling logs
 .a5c/
+
+# Plugin eval run output
+evals/results/

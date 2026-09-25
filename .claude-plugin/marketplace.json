@@ -1,0 +1,16 @@
+{
+  "name": "agamm",
+  "owner": {
+    "name": "Agam More",
+    "url": "https://github.com/agamm"
+  },
+  "description": "Security skills for Claude Code",
+  "plugins": [
+    {
+      "name": "owasp-security",
+      "source": "./",
+      "description": "Security review and secure-coding skill covering OWASP Top 10:2025, ASVS 5.0, the OWASP LLM Top 10 (2026), and the OWASP Agentic Top 10 (2026).",
+      "category": "security"
+    }
+  ]
+}

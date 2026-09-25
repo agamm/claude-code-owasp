@@ -4,6 +4,15 @@ A Claude Code skill providing the latest OWASP security best practices (2025-202
 
 ## Quick Install
 
+Install as a Claude Code plugin, which also keeps it updated:
+
+```
+/plugin marketplace add agamm/claude-code-owasp
+/plugin install owasp-security@agamm
+```
+
+### Install as a plain skill
+
 The skill is a directory (`SKILL.md` plus on-demand `reference/` files), so install the whole
 folder. The easiest way is [`degit`](https://github.com/Rich-Harris/degit), which copies a
 GitHub subdirectory without the `.git` history:
@@ -23,29 +32,32 @@ npx degit agamm/claude-code-owasp/.claude/skills/owasp-security ~/.claude/skills
 ### Claude Code Skill
 Location: `.claude/skills/owasp-security/`
 
-`SKILL.md` (the always-loaded core):
-- **OWASP Top 10:2025** quick reference table
+`SKILL.md` (loaded when the skill triggers):
+- **Security review workflow** - a five-step checklist from entry points to report
 - **Finding-triage rubric** - confirm attacker-controlled input, sink reachability, and blast radius before reporting, to cut false positives
-- **Security code review checklists** for input handling, auth, access control, data protection, and error handling
-- **Secure code patterns** with unsafe/safe examples
-- **OWASP Top 10 for LLM Applications (2025)** - LLM01-LLM10 risks for chatbots, RAG, and tool-calling apps
+- **Reporting format** - fixed finding structure (location, input-to-sink path, impact, fix, confidence) with severity rated by exploitability
+- **OWASP Top 10:2025** quick reference table
+- **OWASP Top 10 for LLM Applications (2026)** - LLM01-LLM10 risks for chatbots, RAG, and tool-calling apps
 - **OWASP Agentic AI Security (2026)** - ASI01-ASI10 risks for AI agent systems
 - **ASVS 5.0** key requirements with real 5.0 requirement IDs and levels
-- **Deep security analysis mindset** for any language
 
 `reference/` (loaded on demand, following Claude Code progressive-disclosure best practices):
+- **`review-checklist.md`** - coverage checklist for every Top 10 category (including SSRF, file handling, JWTs, CORS, and CSRF) plus LLM and agent features
 - **`languages.md`** - language-specific security quirks for 20+ languages with unsafe/safe examples
-- **`owasp-report.md`** - deep-dive on the Top 10:2025, ASVS 5.0, the LLM Top 10 (2025), and the Agentic list (2026), with per-item attack vectors and mitigations
+- **`config-and-supply-chain.md`** - A02 and A03 where they actually live: Dockerfiles, Kubernetes, Terraform, framework config, security headers, lockfiles, dependency confusion, install scripts, and CI/CD workflows
+- **`owasp-report.md`** - deep-dive on the Top 10:2025, ASVS 5.0, the LLM Top 10 (2026), and the Agentic list (2026), with per-item attack vectors and mitigations
 
 ### Accuracy
 
 Category names, ASVS chapter structure, and ASVS requirement IDs and levels are verified
 directly against [owasp.org/Top10/2025](https://owasp.org/Top10/2025/),
 [github.com/OWASP/ASVS](https://github.com/OWASP/ASVS/tree/master/5.0/en), and
-[genai.owasp.org](https://genai.owasp.org/llm-top-10/) rather than paraphrased.
+the [LLM Top 10 2026 PDF](https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/) rather than paraphrased.
+The Agentic Top 10 names are checked against that PDF's framework-mapping appendix.
 
 This matters more than it sounds: ASVS 5.0 renumbered every chapter, so 4.0 requirement IDs
-do not carry over, and three Top 10 categories were renamed in 2025. Much of the OWASP
+do not carry over, three Top 10 categories were renamed in 2025, and the LLM Top 10 2026
+reordered eight of its ten entries. Much of the OWASP
 material circulating online still cites the old IDs and names.
 
 ## Usage
@@ -73,7 +85,7 @@ Once installed, Claude Code automatically activates this skill when you:
 |----------|---------|-------|
 | OWASP Top 10 | 2025 | Web application vulnerabilities |
 | OWASP ASVS | 5.0.0 | Security verification requirements |
-| OWASP Top 10 for LLM Apps | 2025 | LLM/RAG/tool-calling app risks |
+| OWASP Top 10 for LLM Apps | 2026 | LLM/RAG/tool-calling app risks |
 | OWASP Agentic | 2026 | AI agent security risks |
 
 ## Language Coverage
@@ -89,6 +101,20 @@ Security quirks for 20+ languages including:
 
 Each language section includes common vulnerabilities, unsafe/safe code patterns, and key functions to watch for.
 
+## Evals
+
+`evals/` holds test cases for [`claude plugin eval`](https://code.claude.com/docs/en/plugin-evals):
+a real finding next to a safe look-alike, safe code that should not draw High findings, an LLM agent
+that runs model output in a shell, and an unrelated request that should not load the skill. Each case
+runs with and without the skill, so the score shows what the skill adds.
+
+```bash
+claude plugin eval . --model sonnet
+```
+
+Runs are real model calls billed to your account. Run the suite before and after any change to
+`SKILL.md` or its description.
+
 ## Alternative Installation
 
 ### Clone Full Repository
@@ -102,13 +128,17 @@ cp -r claude-code-owasp/.claude/skills/owasp-security YOUR_PROJECT/.claude/skill
 Contributions welcome! Please:
 1. Fork the repository
 2. Create a feature branch
-3. Submit a pull request
+3. Run the evals, and add a case if you are fixing a behavior they missed
+4. Submit a pull request
+
+The skill follows Anthropic's [skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices):
+keep `SKILL.md` to what Claude would otherwise get wrong, and put depth in `reference/`.
 
 ## Sources
 
 - [OWASP Top 10:2025](https://owasp.org/Top10/2025/)
 - [OWASP ASVS 5.0](https://github.com/OWASP/ASVS/tree/master/5.0/en) — chapter files, one per V-number
-- [OWASP Top 10 for LLM Applications 2025](https://genai.owasp.org/llm-top-10/)
+- [OWASP Top 10 for LLM Applications 2026](https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/)
 - [OWASP GenAI Security Project](https://genai.owasp.org/) — home of the LLM and Agentic lists
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)
 
