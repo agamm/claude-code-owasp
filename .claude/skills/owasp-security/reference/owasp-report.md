@@ -802,6 +802,8 @@ def chat(msg: str, user: User):
     return resp.text
 ```
 
+> Note: this check-then-account pattern is not a hard cap. Concurrent requests can all pass the check before any of them is accounted, and `max_tokens` caps only output tokens. For a hard cap, atomically reserve estimated input + max output tokens before the call and reconcile afterwards.
+
 **Mitigation Strategies:**
 1. Enforce per-identity rate limits and daily token or cost budgets
 2. Cap max tokens, tool-call depth, and total steps per request
