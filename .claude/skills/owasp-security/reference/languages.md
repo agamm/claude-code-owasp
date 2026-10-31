@@ -148,8 +148,8 @@ atomic.AddInt64(&counter, 1)
 
 // UNSAFE: Template injection
 template.HTML(userInput)
-// SAFE: Let template escape
-{{.UserInput}}
+// SAFE: Let html/template escape (text/template does NOT auto-escape - the same syntax there is an XSS sink)
+{{.UserInput}}  // html/template only
 ```
 **Watch for:** Goroutine data races, `template.HTML()`, `unsafe` package, unchecked slice access
 
