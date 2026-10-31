@@ -33,7 +33,7 @@ Different languages have unique security pitfalls. This file covers the top 20 l
 ```javascript
 // UNSAFE: Prototype pollution - the vector is RECURSIVE merge, not a shallow copy.
 // Payload {"__proto__": {"isAdmin": true}} reaches Object.prototype for every object.
-deepMerge(config, JSON.parse(body))   // lodash.merge, _.set, hand-rolled merges
+deepMerge(config, JSON.parse(body))   // lodash.merge / _.set on vulnerable Lodash versions (fixed in 4.17.x), hand-rolled merges
 // SAFE: skip the dangerous keys at every depth (stripping only the top level misses
 // {"a": {"__proto__": ...}}), or validate against a schema before merging
 const BLOCKED = new Set(["__proto__", "constructor", "prototype"]);
