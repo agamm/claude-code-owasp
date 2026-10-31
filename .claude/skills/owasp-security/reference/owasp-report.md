@@ -791,7 +791,7 @@ service or denial of wallet.
 def chat(msg: str):
     return llm.complete(msg)
 
-# SAFE - per-user rate limit, token cap, timeout, budget check
+# SAFE (simplified example, not a hard cap - see note below) - per-user rate limit, token cap, timeout, budget check
 @app.post("/chat")
 @rate_limit("20/min", key="user_id")
 def chat(msg: str, user: User):
