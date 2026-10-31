@@ -33,7 +33,7 @@ Different languages have unique security pitfalls. This file covers the top 20 l
 ```javascript
 // UNSAFE: Prototype pollution - the vector is RECURSIVE merge, not a shallow copy.
 // Payload {"__proto__": {"isAdmin": true}} reaches Object.prototype for every object.
-deepMerge(config, JSON.parse(body))   // lodash.merge, _.set, hand-rolled merges
+deepMerge(config, JSON.parse(body))   // lodash.merge / _.set on vulnerable Lodash versions (fixed in 4.17.x), hand-rolled merges
 // SAFE: skip the dangerous keys at every depth (stripping only the top level misses
 // {"a": {"__proto__": ...}}), or validate against a schema before merging
 const BLOCKED = new Set(["__proto__", "constructor", "prototype"]);
@@ -148,8 +148,8 @@ atomic.AddInt64(&counter, 1)
 
 // UNSAFE: Template injection
 template.HTML(userInput)
-// SAFE: Let template escape
-{{.UserInput}}
+// SAFE: Let html/template escape (text/template does NOT auto-escape - the same syntax there is an XSS sink)
+{{.UserInput}}  // html/template only
 ```
 **Watch for:** Goroutine data races, `template.HTML()`, `unsafe` package, unchecked slice access
 
@@ -163,12 +163,12 @@ User.new(params[:user])
 # SAFE: Strong parameters
 User.new(params.require(:user).permit(:name, :email))
 
-# UNSAFE: YAML RCE
-YAML.load(user_input)
+# UNSAFE: YAML RCE (Psych < 4 / Ruby < 3.1; on Psych 4+ YAML.load already has safe_load semantics)
+YAML.load(user_input)  # on Psych 4+, the equivalent danger is YAML.unsafe_load
 # SAFE: Use safe_load
 YAML.safe_load(user_input)
 ```
-**Watch for:** YAML.load, Marshal.load, eval, send with user input, .permit!
+**Watch for:** YAML.load (Psych < 4), YAML.unsafe_load, Marshal.load, eval, send with user input, .permit!
 
 ---
 

@@ -791,7 +791,7 @@ service or denial of wallet.
 def chat(msg: str):
     return llm.complete(msg)
 
-# SAFE - per-user rate limit, token cap, timeout, budget check
+# SAFE (simplified example, not a hard cap - see note below) - per-user rate limit, token cap, timeout, budget check
 @app.post("/chat")
 @rate_limit("20/min", key="user_id")
 def chat(msg: str, user: User):
@@ -801,6 +801,8 @@ def chat(msg: str, user: User):
     user.add_tokens_used(resp.usage.total_tokens)  # without this the budget never trips
     return resp.text
 ```
+
+> Note: this check-then-account pattern is not a hard cap. Concurrent requests can all pass the check before any of them is accounted, and `max_tokens` caps only output tokens. For a hard cap, atomically reserve estimated input + max output tokens before the call and reconcile afterwards.
 
 **Mitigation Strategies:**
 1. Enforce per-identity rate limits and daily token or cost budgets
