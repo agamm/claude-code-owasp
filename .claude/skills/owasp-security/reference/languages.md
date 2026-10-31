@@ -168,7 +168,7 @@ YAML.load(user_input)  # on Psych 4+, the equivalent danger is YAML.unsafe_load
 # SAFE: Use safe_load
 YAML.safe_load(user_input)
 ```
-**Watch for:** YAML.load, Marshal.load, eval, send with user input, .permit!
+**Watch for:** YAML.load (Psych < 4), YAML.unsafe_load, Marshal.load, eval, send with user input, .permit!
 
 ---
 
