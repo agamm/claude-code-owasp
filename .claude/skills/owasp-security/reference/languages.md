@@ -163,8 +163,8 @@ User.new(params[:user])
 # SAFE: Strong parameters
 User.new(params.require(:user).permit(:name, :email))
 
-# UNSAFE: YAML RCE
-YAML.load(user_input)
+# UNSAFE: YAML RCE (Psych < 4 / Ruby < 3.1; on Psych 4+ YAML.load already has safe_load semantics)
+YAML.load(user_input)  # on Psych 4+, the equivalent danger is YAML.unsafe_load
 # SAFE: Use safe_load
 YAML.safe_load(user_input)
 ```
