@@ -33,7 +33,10 @@ Different languages have unique security pitfalls. This file covers the top 20 l
 ```javascript
 // UNSAFE: Prototype pollution - the vector is RECURSIVE merge, not a shallow copy.
 // Payload {"__proto__": {"isAdmin": true}} reaches Object.prototype for every object.
-deepMerge(config, JSON.parse(body))   // lodash.merge, _.set, hand-rolled merges
+deepMerge(config, JSON.parse(body))   // hand-rolled recursive merges; also lodash.merge / _.set
+                                      // on old Lodash (CVE-2018-3721, CVE-2018-16487, CVE-2020-8203).
+                                      // Current 4.17.x+ filters __proto__ and constructor.prototype:
+                                      // check the lockfile before flagging a Lodash call.
 // SAFE: skip the dangerous keys at every depth (stripping only the top level misses
 // {"a": {"__proto__": ...}}), or validate against a schema before merging
 const BLOCKED = new Set(["__proto__", "constructor", "prototype"]);
@@ -146,12 +149,14 @@ go func() { counter++ }()
 // SAFE: Use sync primitives
 atomic.AddInt64(&counter, 1)
 
-// UNSAFE: Template injection
+// UNSAFE: Template injection - template.HTML marks input trusted; text/template never escapes
 template.HTML(userInput)
-// SAFE: Let template escape
-{{.UserInput}}
+texttemplate.Must(texttemplate.New("page").Parse("<p>{{.UserInput}}</p>"))  // text/template: XSS
+// SAFE: html/template escapes {{.UserInput}} for the HTML, attribute, JS, or URL context it lands in
+import "html/template"
+template.Must(template.New("page").Parse("<p>{{.UserInput}}</p>"))
 ```
-**Watch for:** Goroutine data races, `template.HTML()`, `unsafe` package, unchecked slice access
+**Watch for:** Goroutine data races, `template.HTML()`, `text/template` rendering HTML, `unsafe` package, unchecked slice access
 
 ---
 
@@ -164,11 +169,12 @@ User.new(params[:user])
 User.new(params.require(:user).permit(:name, :email))
 
 # UNSAFE: YAML RCE
-YAML.load(user_input)
-# SAFE: Use safe_load
+YAML.unsafe_load(user_input)   # arbitrary objects on every Psych version
+YAML.load(user_input)          # RCE only on Psych < 4 (Ruby < 3.1); since Psych 4 it is safe_load
+# SAFE: Use safe_load explicitly, so the result does not depend on the Psych version in Gemfile.lock
 YAML.safe_load(user_input)
 ```
-**Watch for:** YAML.load, Marshal.load, eval, send with user input, .permit!
+**Watch for:** YAML.unsafe_load, YAML.load on Psych < 4, Marshal.load, eval, send with user input, .permit!
 
 ---
 

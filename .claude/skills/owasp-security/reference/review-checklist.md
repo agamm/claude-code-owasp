@@ -52,6 +52,8 @@ touch. A checked-off gap is a lead to trace, not a finding: run it through the t
 ## Server-Side Request Forgery (A01)
 - [ ] User-supplied URLs resolved and validated against an allowlist of hosts/schemes
 - [ ] Private, loopback, and link-local ranges blocked, including after DNS resolution
+- [ ] The connection goes to the IP that was validated: pin it, or validate inside a custom dialer
+      or agent at connect time. Resolve, check, then fetch by hostname is open to DNS rebinding
 - [ ] Redirects not followed blindly to a new host (re-validate each hop)
 - [ ] Cloud metadata endpoints (`169.254.169.254`) unreachable from the app
 
