@@ -71,9 +71,11 @@ CMD ["node", "server.js"]
 
 **Check for:**
 - Running as root - `USER` absent entirely is the common case, not an explicit `USER root`
-- Secrets in `ENV`, `ARG`, or any `RUN` command - every layer is readable via `docker history`;
-  deleting a file in a later layer does not remove it from the earlier one. Use build secrets
-  (`RUN --mount=type=secret`) or inject at runtime.
+- Secrets in `ENV`, `ARG`, or any `RUN` command - the values are in the layer metadata, visible
+  with `docker history`. Use build secrets (`RUN --mount=type=secret`) or inject at runtime.
+- Secret files copied in and deleted in a later layer - `docker history` does not show these,
+  but the earlier layer still contains the file; `docker save` or `dive` recovers it. Check both
+  vectors: history for values, layer contents for files.
 - Missing `.dockerignore` while the Dockerfile does `COPY . .` - this is how `.git` and `.env`
   reach production images
 - `npm install` / `pip install -r` without a lockfile step (see A03 below)

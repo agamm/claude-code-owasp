@@ -791,19 +791,23 @@ service or denial of wallet.
 def chat(msg: str):
     return llm.complete(msg)
 
-# SAFE - per-user rate limit, token cap, timeout, budget check
+# SAFE - per-user rate limit, token cap, timeout, budget reserved atomically before the call
 @app.post("/chat")
 @rate_limit("20/min", key="user_id")
 def chat(msg: str, user: User):
-    if user.tokens_used_today >= user.daily_token_budget:
+    estimate = count_tokens(msg) + 512   # input plus the output cap; max_tokens limits output only
+    # One atomic decrement (DECRBY, or UPDATE ... WHERE remaining >= :n). A read-then-write
+    # check lets N concurrent requests all pass with one request's worth of budget left.
+    if not budget.reserve(user.id, estimate):
         abort(429, "Daily budget exceeded")
     resp = llm.complete(msg, max_tokens=512, timeout=15)
-    user.add_tokens_used(resp.usage.total_tokens)  # without this the budget never trips
+    budget.refund(user.id, estimate - resp.usage.total_tokens)  # reconcile to actual usage
     return resp.text
 ```
 
 **Mitigation Strategies:**
-1. Enforce per-identity rate limits and daily token or cost budgets
+1. Enforce per-identity rate limits and daily token or cost budgets, reserved atomically before
+   the call (a check followed by a separate write is racy)
 2. Cap max tokens, tool-call depth, and total steps per request
 3. Set hard timeouts on completions and tool calls
 4. Alert on cost anomalies: spend is a security signal
