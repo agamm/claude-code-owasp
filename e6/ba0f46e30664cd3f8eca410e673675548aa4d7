@@ -1,0 +1,25 @@
+.claude/skills/owasp-security/reference/config-and-supply-chain.md
+  s_d32fb4ae786cd5::t_97dd108c7a8f32 74-78
+.claude/skills/owasp-security/reference/owasp-report.md
+  s_d32fb4ae786cd5::t_97dd108c7a8f32 794,798-801,804,809-810
+.claude/skills/owasp-security/reference/languages.md
+  s_d32fb4ae786cd5::t_97dd108c7a8f32 36-39,152,154-157,159,172-174,177
+.claude/skills/owasp-security/reference/review-checklist.md
+  s_d32fb4ae786cd5::t_97dd108c7a8f32 55-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e6ba0f46e30664cd3f8eca410e673675548aa4d7",
+  "prompts": {},
+  "sessions": {
+    "s_d32fb4ae786cd5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d8c48efc-bace-4273-9e21-6768bc8e691a",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Agam More <Agam@agam.me>"
+    }
+  }
+}
